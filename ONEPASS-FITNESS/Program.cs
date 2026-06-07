@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Data;
-using ONEPASS_FITNESS.Services;
 
 namespace ONEPASS_FITNESS
 {
@@ -26,8 +24,6 @@ namespace ONEPASS_FITNESS
             })
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-
-            builder.Services.AddTransient<IEmailSender, EmailSender>();
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
