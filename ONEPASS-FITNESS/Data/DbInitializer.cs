@@ -6,17 +6,14 @@ namespace ONEPASS_FITNESS.Data
 {
     public class DbInitializer
     {
+        private const string StaffPassword = "Staff1234";
+
         public static void Initialize(
             ApplicationDbContext context,
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
             context.Database.Migrate();
-
-            if (context.Classes.Any())
-            {
-                return;
-            }
 
             var roles = new IdentityRole[]
             {
@@ -33,57 +30,71 @@ namespace ONEPASS_FITNESS.Data
                 }
             }
 
-            var personalInfos = new Personalinfo[]
-            {
-                new Personalinfo { Name = "John", Lastname = "Doe", DOB = DateOnly.Parse("1990-01-01"), Email = "john.doe@example.com", PhoneNumber = "0224651243" },
-                new Personalinfo { Name = "Jane", Lastname = "Smith", DOB = DateOnly.Parse("1992-03-15"), Email = "jane.smith@example.com", PhoneNumber = "0211111111" },
-                new Personalinfo { Name = "Michael", Lastname = "Brown", DOB = DateOnly.Parse("1988-07-22"), Email = "michael.brown@example.com", PhoneNumber = "0212222222" },
-                new Personalinfo { Name = "Olivia", Lastname = "Wilson", DOB = DateOnly.Parse("1994-11-05"), Email = "olivia.wilson@example.com", PhoneNumber = "0213333333" },
-                new Personalinfo { Name = "Liam", Lastname = "Taylor", DOB = DateOnly.Parse("1991-02-10"), Email = "liam.taylor@example.com", PhoneNumber = "0214444444" }
-            };
+            SeedStaffUser(userManager, context, "sarah.mitchell@test.com", StaffPassword, new[] { "Admin", "Trainer" }, "Sarah", "Mitchell", "0211000001");
+            SeedStaffUser(userManager, context, "james.cooper@test.com", StaffPassword, new[] { "Admin", "Trainer" }, "James", "Cooper", "0211000002");
 
-            for (var i = 0; i < personalInfos.Length; i++)
-            {
-                var profile = personalInfos[i];
-                var user = userManager.FindByEmailAsync(profile.Email).GetAwaiter().GetResult();
+            SeedStaffUser(userManager, context, "emma.lewis@test.com", StaffPassword, new[] { "Trainer" }, "Emma", "Lewis", "0212000001");
+            SeedStaffUser(userManager, context, "olivia.chen@test.com", StaffPassword, new[] { "Trainer" }, "Olivia", "Chen", "0212000002");
+            SeedStaffUser(userManager, context, "liam.brooks@test.com", StaffPassword, new[] { "Trainer" }, "Liam", "Brooks", "0212000003");
 
-                if (user == null)
+            if (!context.Classes.Any())
+            {
+                var classes = new Classes[]
                 {
-                    user = new IdentityUser
-                    {
-                        UserName = profile.Email,
-                        Email = profile.Email,
-                        EmailConfirmed = true
-                    };
+                    new Classes { Classname = "Yoga", Date = DateOnly.Parse("2026-05-01"), Starttime = TimeOnly.Parse("09:00"), Endtime = TimeOnly.Parse("10:00"), Capacity = 20 },
+                    new Classes { Classname = "HIIT", Date = DateOnly.Parse("2026-05-02"), Starttime = TimeOnly.Parse("18:00"), Endtime = TimeOnly.Parse("19:00"), Capacity = 15 },
+                    new Classes { Classname = "Pilates", Date = DateOnly.Parse("2026-05-03"), Starttime = TimeOnly.Parse("11:00"), Endtime = TimeOnly.Parse("12:00"), Capacity = 10 }
+                };
 
-                    userManager.CreateAsync(user, "Test1234").GetAwaiter().GetResult();
-                    userManager.AddToRoleAsync(user, "Member").GetAwaiter().GetResult();
-                }
+                context.Classes.AddRange(classes);
+                context.SaveChanges();
+            }
+        }
 
-                profile.IdentityUserId = user.Id;
+        private static void SeedStaffUser(
+            UserManager<IdentityUser> userManager,
+            ApplicationDbContext context,
+            string email,
+            string password,
+            string[] roles,
+            string name,
+            string lastname,
+            string phone)
+        {
+            var user = userManager.FindByEmailAsync(email).GetAwaiter().GetResult();
+            if (user == null)
+            {
+                user = new IdentityUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true
+                };
+
+                userManager.CreateAsync(user, password).GetAwaiter().GetResult();
             }
 
-            context.Personalinfos.AddRange(personalInfos);
-            context.SaveChanges();
-
-            var classes = new Classes[]
+            foreach (var role in roles)
             {
-                new Classes { Classname = "Yoga", Date = DateOnly.Parse("2026-05-01"), Starttime = TimeOnly.Parse("09:00"), Endtime = TimeOnly.Parse("10:00"), Capacity = 20 },
-                new Classes { Classname = "HIIT", Date = DateOnly.Parse("2026-05-02"), Starttime = TimeOnly.Parse("18:00"), Endtime = TimeOnly.Parse("19:00"), Capacity = 15 },
-                new Classes { Classname = "Pilates", Date = DateOnly.Parse("2026-05-03"), Starttime = TimeOnly.Parse("11:00"), Endtime = TimeOnly.Parse("12:00"), Capacity = 10 }
-            };
+                if (!userManager.IsInRoleAsync(user, role).GetAwaiter().GetResult())
+                {
+                    userManager.AddToRoleAsync(user, role).GetAwaiter().GetResult();
+                }
+            }
 
-            context.Classes.AddRange(classes);
-            context.SaveChanges();
-
-            var progress = new Progress[]
+            if (!context.Personalinfos.Any(p => p.IdentityUserId == user.Id))
             {
-                new Progress { Personalinfoid = personalInfos[0].PersonalinfoId, Weight = 82.5m, DateRecorded = DateOnly.Parse("2026-05-01") },
-                new Progress { Personalinfoid = personalInfos[1].PersonalinfoId, Weight = 68.0m, DateRecorded = DateOnly.Parse("2026-05-01") }
-            };
-
-            context.Progress.AddRange(progress);
-            context.SaveChanges();
+                context.Personalinfos.Add(new Personalinfo
+                {
+                    IdentityUserId = user.Id,
+                    Name = name,
+                    Lastname = lastname,
+                    DOB = DateOnly.Parse("1990-01-01"),
+                    Email = email,
+                    PhoneNumber = phone
+                });
+                context.SaveChanges();
+            }
         }
     }
 }
