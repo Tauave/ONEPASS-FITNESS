@@ -54,6 +54,16 @@ namespace ONEPASS_FITNESS
 
             app.MapRazorPages();
 
+            if (app.Environment.IsDevelopment())
+            {
+                using var scope = app.Services.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                DbInitializer.Initialize(context, userManager, roleManager);
+            }
+
             app.Run();
         }
     }
