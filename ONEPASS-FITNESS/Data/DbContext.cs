@@ -23,6 +23,8 @@ namespace ONEPASS_FITNESS.Data
 
             modelBuilder.Entity<Personalinfo>(entity =>
             {
+                entity.ToTable("Personalinfo");
+
                 entity.HasKey(p => p.PersonalinfoId);
 
                 entity.HasIndex(p => p.IdentityUserId).IsUnique();
