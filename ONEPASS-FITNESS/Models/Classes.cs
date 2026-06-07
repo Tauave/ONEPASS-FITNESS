@@ -4,11 +4,10 @@ namespace ONEPASS_FITNESS.Models
 {
     public class Classes
     {
-        public int ClassId { get; set; }
+        public int Classid { get; set; }
 
         [Required]
-        public string Classname { get; set; }
-
+        public string Classname { get; set; } 
         [Required]
         public DateOnly Date { get; set; }
 

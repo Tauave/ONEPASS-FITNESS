@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Data;
 
 namespace ONEPASS_FITNESS.Models
 {
@@ -8,21 +7,27 @@ namespace ONEPASS_FITNESS.Models
         public int PersonalinfoId { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        public string IdentityUserId { get; set; } 
 
         [Required]
-        public string Lastname { get; set; }
+        public string Name { get; set; } 
+
+        [Required]
+        public string Lastname { get; set; } 
 
         [Required]
         public DateOnly DOB { get; set; }
 
         [Required]
-        public EmailAddressAttribute Email { get; set; }
+        [EmailAddress]
+        public string Email { get; set; } 
 
         [Required]
         [Phone]
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; } 
 
+        public ICollection<ClassBookings> ClassBookings { get; set; } = new List<ClassBookings>();
 
+        public ICollection<Progress> Progress { get; set; } = new List<Progress>();
     }
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ONEPASS_FITNESS.Models
 {
@@ -7,20 +8,21 @@ namespace ONEPASS_FITNESS.Models
         public int BookingID { get; set; }
 
         [Required]
-        public int ClassId { get; set; }
+        [ForeignKey(nameof(Class))]
+        public int Classid { get; set; }
 
-        public Classes Class { get; set; }
+        public Classes Class { get; set; } 
 
         [Required]
-        public int PersonalinfoId { get; set; }
+        [ForeignKey(nameof(Personalinfo))]
+        public int Personalinfoid { get; set; }
 
+        public Personalinfo Personalinfo { get; set; }
 
         [Required]
         public DateOnly BookingDate { get; set; }
 
         [Required]
-        public string AttendanceStatus { get; set; }
-
-        public Personalinfo Personalinfo { get; set; }
+        public string AttendanceStatus { get; set; } 
     }
 }
