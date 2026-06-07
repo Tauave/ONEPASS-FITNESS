@@ -1,59 +1,44 @@
 @model IEnumerable<ONEPASS_FITNESS.Models.Classes>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Schedule";
 }
 
-<h1>Index</h1>
+<h1>Schedule</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+@if (User.IsInRole("Admin"))
+{
+    <p>
+        <a asp-action="Create" class="btn btn-sm btn-outline-primary">Add Class</a>
+    </p>
+}
+
+<table class="table table-striped">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Classname)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Starttime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Endtime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Capacity)
-            </th>
-            <th></th>
+            <th>Class</th>
+            <th>Date</th>
+            <th>Time</th>
+            @if (User.IsInRole("Admin"))
+            {
+                <th></th>
+            }
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Classname)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Starttime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Endtime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Capacity)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Classid">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Classid">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Classid">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Classname</td>
+                <td>@item.Date.ToString("dd MMM yyyy")</td>
+                <td>@item.Starttime.ToString("hh\\:mm") - @item.Endtime.ToString("hh\\:mm")</td>
+                @if (User.IsInRole("Admin"))
+                {
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Classid" class="btn btn-sm btn-secondary">Edit</a>
+                    </td>
+                }
+            </tr>
+        }
     </tbody>
 </table>

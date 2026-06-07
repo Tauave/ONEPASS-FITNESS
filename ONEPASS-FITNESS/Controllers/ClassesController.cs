@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Data;
 using ONEPASS_FITNESS.Models;
 
 namespace ONEPASS_FITNESS.Controllers
 {
+    [Authorize]
     public class ClassesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -19,13 +16,14 @@ namespace ONEPASS_FITNESS.Controllers
             _context = context;
         }
 
-        // GET: Classes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Classes.ToListAsync());
+            return View(await _context.Classes
+                .OrderBy(c => c.Date)
+                .ThenBy(c => c.Starttime)
+                .ToListAsync());
         }
 
-        // GET: Classes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -43,17 +41,15 @@ namespace ONEPASS_FITNESS.Controllers
             return View(classes);
         }
 
-        // GET: Classes/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Classes/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Classid,Classname,Date,Starttime,Endtime,Capacity")] Classes classes)
         {
             if (ModelState.IsValid)
@@ -65,7 +61,7 @@ namespace ONEPASS_FITNESS.Controllers
             return View(classes);
         }
 
-        // GET: Classes/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -81,11 +77,9 @@ namespace ONEPASS_FITNESS.Controllers
             return View(classes);
         }
 
-        // POST: Classes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Classid,Classname,Date,Starttime,Endtime,Capacity")] Classes classes)
         {
             if (id != classes.Classid)
@@ -116,7 +110,6 @@ namespace ONEPASS_FITNESS.Controllers
             return View(classes);
         }
 
-        // GET: Classes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -134,7 +127,6 @@ namespace ONEPASS_FITNESS.Controllers
             return View(classes);
         }
 
-        // POST: Classes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

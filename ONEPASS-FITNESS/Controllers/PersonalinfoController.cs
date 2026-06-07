@@ -1,150 +1,119 @@
-
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ONEPASS_FITNESS.Models;
 using ONEPASS_FITNESS.Data;
+using ONEPASS_FITNESS.Models;
+using ONEPASS_FITNESS.Models.ViewModels;
 
-public class PersonalinfoController : Controller
+namespace ONEPASS_FITNESS.Controllers
 {
-    private readonly ApplicationDbContext _context;
-
-    public PersonalinfoController(ApplicationDbContext context)
+    [Authorize]
+    public class PersonalinfoController : Controller
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-    // GET: PERSONALINFOS
-    public async Task<IActionResult> Index()    
-    {
-        return View(await _context.Personalinfos.ToListAsync());
-    }
-
-    // GET: PERSONALINFOS/Details/5
-    public async Task<IActionResult> Details(int? personalinfoid)
-    {
-        if (personalinfoid == null)
+        public PersonalinfoController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
-            return NotFound();
+            _context = context;
+            _userManager = userManager;
         }
 
-        var personalinfo = await _context.Personalinfos
-            .FirstOrDefaultAsync(m => m.PersonalinfoId == personalinfoid);
-        if (personalinfo == null)
+        public async Task<IActionResult> Index()
         {
-            return NotFound();
+            var profile = await GetCurrentProfileAsync();
+            if (profile == null)
+            {
+                return RedirectToAction(nameof(Create));
+            }
+
+            var bookings = await _context.ClassBookings
+                .Include(b => b.Class)
+                .Where(b => b.Personalinfoid == profile.PersonalinfoId)
+                .ToListAsync();
+
+            var model = new AccountViewModel
+            {
+                Profile = profile,
+                Bookings = bookings
+            };
+
+            return View(model);
         }
 
-        return View(personalinfo);
-    }
-
-    // GET: PERSONALINFOS/Create
-    public IActionResult Create()
-    {
-        return View();
-    }
-
-    // POST: PERSONALINFOS/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("PersonalinfoId,IdentityUserId,Name,Lastname,DOB,Email,PhoneNumber,ClassBookings,Progress")] Personalinfo personalinfo)
-    {
-        if (ModelState.IsValid)
+        public IActionResult Create()
         {
-            _context.Add(personalinfo);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-        return View(personalinfo);
-    }
-
-    // GET: PERSONALINFOS/Edit/5
-    public async Task<IActionResult> Edit(int? personalinfoid)
-    {
-        if (personalinfoid == null)
-        {
-            return NotFound();
+            return View(new Personalinfo());
         }
 
-        var personalinfo = await _context.Personalinfos.FindAsync(personalinfoid);
-        if (personalinfo == null)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Name,Lastname,DOB,Email,PhoneNumber")] Personalinfo personalinfo)
         {
-            return NotFound();
-        }
-        return View(personalinfo);
-    }
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                return Challenge();
+            }
 
-    // POST: PERSONALINFOS/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? personalinfoid, [Bind("PersonalinfoId,IdentityUserId,Name,Lastname,DOB,Email,PhoneNumber,ClassBookings,Progress")] Personalinfo personalinfo)
-    {
-        if (personalinfoid != personalinfo.PersonalinfoId)
-        {
-            return NotFound();
+            if (await _context.Personalinfos.AnyAsync(p => p.IdentityUserId == userId))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (ModelState.IsValid)
+            {
+                personalinfo.IdentityUserId = userId;
+                _context.Add(personalinfo);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(personalinfo);
         }
 
-        if (ModelState.IsValid)
+        public async Task<IActionResult> Edit(int? id)
         {
-            try
+            var profile = await GetCurrentProfileAsync();
+            if (profile == null || id != profile.PersonalinfoId)
+            {
+                return NotFound();
+            }
+
+            return View(profile);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("PersonalinfoId,IdentityUserId,Name,Lastname,DOB,Email,PhoneNumber")] Personalinfo personalinfo)
+        {
+            var profile = await GetCurrentProfileAsync();
+            if (profile == null || id != personalinfo.PersonalinfoId || profile.IdentityUserId != personalinfo.IdentityUserId)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
             {
                 _context.Update(personalinfo);
                 await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateConcurrencyException)
+
+            return View(personalinfo);
+        }
+
+        private async Task<Personalinfo> GetCurrentProfileAsync()
+        {
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
             {
-                if (!PersonalinfoExists(personalinfo.PersonalinfoId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return null;
             }
-            return RedirectToAction(nameof(Index));
+
+            return await _context.Personalinfos
+                .FirstOrDefaultAsync(p => p.IdentityUserId == userId);
         }
-        return View(personalinfo);
-    }
-
-    // GET: PERSONALINFOS/Delete/5
-    public async Task<IActionResult> Delete(int? personalinfoid)
-    {
-        if (personalinfoid == null)
-        {
-            return NotFound();
-        }
-
-        var personalinfo = await _context.Personalinfos
-            .FirstOrDefaultAsync(m => m.PersonalinfoId == personalinfoid);
-        if (personalinfo == null)
-        {
-            return NotFound();
-        }
-
-        return View(personalinfo);
-    }
-
-    // POST: PERSONALINFOS/Delete/5
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int? personalinfoid)
-    {
-        var personalinfo = await _context.Personalinfos.FindAsync(personalinfoid);
-        if (personalinfo != null)
-        {
-            _context.Personalinfos.Remove(personalinfo);
-        }
-
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    private bool PersonalinfoExists(int? personalinfoid)
-    {
-        return _context.Personalinfos.Any(e => e.PersonalinfoId == personalinfoid);
     }
 }

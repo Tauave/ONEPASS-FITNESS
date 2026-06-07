@@ -1,42 +1,35 @@
 @model ONEPASS_FITNESS.Models.Progress
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Log Progress";
 }
 
-<h1>Create</h1>
+<h1>Log Progress</h1>
 
-<h4>Progress</h4>
-<hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Personalinfoid" class="control-label"></label>
-                <select asp-for="Personalinfoid" class ="form-control" asp-items="ViewBag.Personalinfoid"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Weight" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Weight" class="form-label">Weight (kg)</label>
                 <input asp-for="Weight" class="form-control" />
                 <span asp-validation-for="Weight" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="DateRecorded" class="control-label"></label>
-                <input asp-for="DateRecorded" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="DateRecorded" class="form-label">Date Recorded</label>
+                <input asp-for="DateRecorded" class="form-control" type="date" />
                 <span asp-validation-for="DateRecorded" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

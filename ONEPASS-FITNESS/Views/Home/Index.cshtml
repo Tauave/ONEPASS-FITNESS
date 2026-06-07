@@ -1,8 +1,47 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    <h1 class="mb-4">Welcome @(ViewBag.DisplayName ?? User.Identity.Name)</h1>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Progress</h5>
+                    <p class="card-text">Track your weight and fitness progress.</p>
+                    <a asp-controller="Progress" asp-action="Index" class="btn btn-primary">View Progress</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Book a Class</h5>
+                    <p class="card-text">Reserve your spot in an upcoming class.</p>
+                    <a asp-controller="ClassBookings" asp-action="Create" class="btn btn-primary">Book Now</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Schedule</h5>
+                    <p class="card-text">See all available classes, dates and times.</p>
+                    <a asp-controller="Classes" asp-action="Index" class="btn btn-primary">View Schedule</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <h1 class="display-5 mb-3">Welcome to ONEPASS FITNESS</h1>
+        <p class="lead mb-4">Log in or create an account to book classes and track your progress.</p>
+        <a class="btn btn-primary btn-lg me-2" asp-area="Identity" asp-page="/Account/Login">Log In</a>
+        <a class="btn btn-outline-primary btn-lg" asp-area="Identity" asp-page="/Account/Register">Create Account</a>
+    </div>
+}

@@ -1,53 +1,37 @@
 @model IEnumerable<ONEPASS_FITNESS.Models.ClassBookings>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "My Bookings";
 }
 
-<h1>Index</h1>
+<h1>My Bookings</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Class)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Personalinfo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BookingDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.AttendanceStatus)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Class.Classname)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Personalinfo.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BookingDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AttendanceStatus)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.BookingID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.BookingID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.BookingID">Delete</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <p class="text-muted">You don't have any classes booked.</p>
+    <a asp-action="Create" class="btn btn-primary">Book a Class</a>
 }
-    </tbody>
-</table>
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Class</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in Model)
+            {
+                <tr>
+                    <td>@booking.Class.Classname</td>
+                    <td>@booking.Class.Date.ToString("dd MMM yyyy")</td>
+                    <td>@booking.Class.Starttime.ToString("hh\\:mm") - @booking.Class.Endtime.ToString("hh\\:mm")</td>
+                    <td>@booking.AttendanceStatus</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

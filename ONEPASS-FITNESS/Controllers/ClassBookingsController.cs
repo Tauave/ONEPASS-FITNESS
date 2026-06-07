@@ -1,170 +1,96 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Data;
 using ONEPASS_FITNESS.Models;
 
 namespace ONEPASS_FITNESS.Controllers
 {
+    [Authorize]
     public class ClassBookingsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public ClassBookingsController(ApplicationDbContext context)
+        public ClassBookingsController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        // GET: ClassBookings
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.ClassBookings.Include(c => c.Class).Include(c => c.Personalinfo);
-            return View(await applicationDbContext.ToListAsync());
-        }
-
-        // GET: ClassBookings/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
+            var profile = await GetCurrentProfileAsync();
+            if (profile == null)
             {
-                return NotFound();
+                return RedirectToAction("Create", "Personalinfo");
             }
 
-            var classBookings = await _context.ClassBookings
-                .Include(c => c.Class)
-                .Include(c => c.Personalinfo)
-                .FirstOrDefaultAsync(m => m.BookingID == id);
-            if (classBookings == null)
+            var bookings = await _context.ClassBookings
+                .Include(b => b.Class)
+                .Where(b => b.Personalinfoid == profile.PersonalinfoId)
+                .ToListAsync();
+
+            return View(bookings);
+        }
+
+        public async Task<IActionResult> Create()
+        {
+            var profile = await GetCurrentProfileAsync();
+            if (profile == null)
             {
-                return NotFound();
+                return RedirectToAction("Create", "Personalinfo");
             }
 
-            return View(classBookings);
+            ViewBag.Profile = profile;
+            return View(await _context.Classes.OrderBy(c => c.Date).ThenBy(c => c.Starttime).ToListAsync());
         }
 
-        // GET: ClassBookings/Create
-        public IActionResult Create()
-        {
-            ViewData["Classid"] = new SelectList(_context.Classes, "Classid", "Classname");
-            ViewData["Personalinfoid"] = new SelectList(_context.Personalinfos, "PersonalinfoId", "Email");
-            return View();
-        }
-
-        // POST: ClassBookings/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("BookingID,Classid,Personalinfoid,BookingDate,AttendanceStatus")] ClassBookings classBookings)
+        public async Task<IActionResult> Book(int classId)
         {
-            if (ModelState.IsValid)
+            var profile = await GetCurrentProfileAsync();
+            if (profile == null)
             {
-                _context.Add(classBookings);
+                return RedirectToAction("Create", "Personalinfo");
+            }
+
+            var gymClass = await _context.Classes.FindAsync(classId);
+            if (gymClass == null)
+            {
+                return NotFound();
+            }
+
+            var alreadyBooked = await _context.ClassBookings.AnyAsync(b =>
+                b.Personalinfoid == profile.PersonalinfoId && b.Classid == classId);
+
+            if (!alreadyBooked)
+            {
+                _context.ClassBookings.Add(new ClassBookings
+                {
+                    Classid = classId,
+                    Personalinfoid = profile.PersonalinfoId,
+                    BookingDate = DateOnly.FromDateTime(DateTime.Today),
+                    AttendanceStatus = "Booked"
+                });
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["Classid"] = new SelectList(_context.Classes, "Classid", "Classname", classBookings.Classid);
-            ViewData["Personalinfoid"] = new SelectList(_context.Personalinfos, "PersonalinfoId", "Email", classBookings.Personalinfoid);
-            return View(classBookings);
-        }
-
-        // GET: ClassBookings/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
             }
 
-            var classBookings = await _context.ClassBookings.FindAsync(id);
-            if (classBookings == null)
-            {
-                return NotFound();
-            }
-            ViewData["Classid"] = new SelectList(_context.Classes, "Classid", "Classname", classBookings.Classid);
-            ViewData["Personalinfoid"] = new SelectList(_context.Personalinfos, "PersonalinfoId", "Email", classBookings.Personalinfoid);
-            return View(classBookings);
-        }
-
-        // POST: ClassBookings/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("BookingID,Classid,Personalinfoid,BookingDate,AttendanceStatus")] ClassBookings classBookings)
-        {
-            if (id != classBookings.BookingID)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(classBookings);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ClassBookingsExists(classBookings.BookingID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["Classid"] = new SelectList(_context.Classes, "Classid", "Classname", classBookings.Classid);
-            ViewData["Personalinfoid"] = new SelectList(_context.Personalinfos, "PersonalinfoId", "Email", classBookings.Personalinfoid);
-            return View(classBookings);
-        }
-
-        // GET: ClassBookings/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var classBookings = await _context.ClassBookings
-                .Include(c => c.Class)
-                .Include(c => c.Personalinfo)
-                .FirstOrDefaultAsync(m => m.BookingID == id);
-            if (classBookings == null)
-            {
-                return NotFound();
-            }
-
-            return View(classBookings);
-        }
-
-        // POST: ClassBookings/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var classBookings = await _context.ClassBookings.FindAsync(id);
-            if (classBookings != null)
-            {
-                _context.ClassBookings.Remove(classBookings);
-            }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ClassBookingsExists(int id)
+        private async Task<Personalinfo> GetCurrentProfileAsync()
         {
-            return _context.ClassBookings.Any(e => e.BookingID == id);
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                return null;
+            }
+
+            return await _context.Personalinfos
+                .FirstOrDefaultAsync(p => p.IdentityUserId == userId);
         }
     }
 }

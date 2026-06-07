@@ -1,53 +1,50 @@
 @model ONEPASS_FITNESS.Models.Classes
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Add Class";
 }
 
-<h1>Create</h1>
+<h1>Add Class</h1>
 
-<h4>Classes</h4>
-<hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Classname" class="control-label"></label>
+
+            <div class="mb-3">
+                <label asp-for="Classname" class="form-label">Class</label>
                 <input asp-for="Classname" class="form-control" />
                 <span asp-validation-for="Classname" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Date" class="control-label"></label>
-                <input asp-for="Date" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="Date" class="form-label">Date</label>
+                <input asp-for="Date" class="form-control" type="date" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Starttime" class="control-label"></label>
-                <input asp-for="Starttime" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="Starttime" class="form-label">Start Time</label>
+                <input asp-for="Starttime" class="form-control" type="time" />
                 <span asp-validation-for="Starttime" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Endtime" class="control-label"></label>
-                <input asp-for="Endtime" class="form-control" />
+            <div class="mb-3">
+                <label asp-for="Endtime" class="form-label">End Time</label>
+                <input asp-for="Endtime" class="form-control" type="time" />
                 <span asp-validation-for="Endtime" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Capacity" class="control-label"></label>
+            <div class="mb-3">
+                <label asp-for="Capacity" class="form-label">Capacity</label>
                 <input asp-for="Capacity" class="form-control" />
                 <span asp-validation-for="Capacity" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Confirm</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }
