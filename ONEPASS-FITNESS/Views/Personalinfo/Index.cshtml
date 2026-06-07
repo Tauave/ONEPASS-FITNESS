@@ -1,35 +1,35 @@
-@model ONEPASS_FITNESS.Models.ViewModels.AccountViewModel
+@model ONEPASS_FITNESS.Models.Personalinfo
 
 @{
     ViewData["Title"] = "Account";
 }
 
 <h1>Account</h1>
-<p class="text-muted">Welcome @Model.Profile.Name</p>
+<p class="text-muted">Welcome @Model.Name</p>
 
 <div class="row mt-4">
     <div class="col-md-6">
         <h4>Your details</h4>
         <dl class="row">
             <dt class="col-sm-4">Name</dt>
-            <dd class="col-sm-8">@Model.Profile.Name @Model.Profile.Lastname</dd>
+            <dd class="col-sm-8">@Model.Name @Model.Lastname</dd>
 
             <dt class="col-sm-4">Email</dt>
-            <dd class="col-sm-8">@Model.Profile.Email</dd>
+            <dd class="col-sm-8">@Model.Email</dd>
 
             <dt class="col-sm-4">Phone Number</dt>
-            <dd class="col-sm-8">@Model.Profile.PhoneNumber</dd>
+            <dd class="col-sm-8">@Model.PhoneNumber</dd>
 
             <dt class="col-sm-4">Date of Birth</dt>
-            <dd class="col-sm-8">@Model.Profile.DOB.ToString("dd MMM yyyy")</dd>
+            <dd class="col-sm-8">@Model.DOB.ToString("dd MMM yyyy")</dd>
         </dl>
 
-        <a asp-action="Edit" asp-route-id="@Model.Profile.PersonalinfoId" class="btn btn-primary">Edit Profile</a>
+        <a asp-action="Edit" asp-route-id="@Model.PersonalinfoId" class="btn btn-primary">Edit Profile</a>
     </div>
 
     <div class="col-md-6">
         <h4>Your bookings</h4>
-        @if (!Model.Bookings.Any())
+        @if (!Model.ClassBookings.Any())
         {
             <p class="text-muted">You don't have any classes booked.</p>
             <a asp-controller="ClassBookings" asp-action="Create" class="btn btn-outline-primary">Book a Class</a>
@@ -46,7 +46,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var booking in Model.Bookings)
+                    @foreach (var booking in Model.ClassBookings)
                     {
                         <tr>
                             <td>@booking.Class.Classname</td>

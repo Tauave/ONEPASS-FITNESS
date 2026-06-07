@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Data;
 using ONEPASS_FITNESS.Models;
-using ONEPASS_FITNESS.Models.ViewModels;
 
 namespace ONEPASS_FITNESS.Controllers
 {
@@ -22,24 +21,23 @@ namespace ONEPASS_FITNESS.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var profile = await GetCurrentProfileAsync();
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                return Challenge();
+            }
+
+            var profile = await _context.Personalinfos
+                .Include(p => p.ClassBookings)
+                .ThenInclude(b => b.Class)
+                .FirstOrDefaultAsync(p => p.IdentityUserId == userId);
+
             if (profile == null)
             {
                 return RedirectToAction(nameof(Create));
             }
 
-            var bookings = await _context.ClassBookings
-                .Include(b => b.Class)
-                .Where(b => b.Personalinfoid == profile.PersonalinfoId)
-                .ToListAsync();
-
-            var model = new AccountViewModel
-            {
-                Profile = profile,
-                Bookings = bookings
-            };
-
-            return View(model);
+            return View(profile);
         }
 
         public IActionResult Create()
