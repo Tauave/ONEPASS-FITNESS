@@ -9,13 +9,13 @@ namespace ONEPASS_FITNESS.Models
         [Required]
         public int Personalinfoid { get; set; }
 
-        public Personalinfo Personalinfo { get; set; }
-
         [Required]
         [Range(0.01, double.MaxValue)]
         public decimal Weight { get; set; }
 
         [Required]
         public DateOnly DateRecorded { get; set; }
+
+        public Personalinfo Personalinfo { get; set; }
     }
 }

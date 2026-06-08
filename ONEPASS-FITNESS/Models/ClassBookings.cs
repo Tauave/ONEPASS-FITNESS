@@ -14,12 +14,12 @@ namespace ONEPASS_FITNESS.Models
         [Required]
         public int Personalinfoid { get; set; }
 
-        public Personalinfo Personalinfo { get; set; }
-
         [Required]
         public DateOnly BookingDate { get; set; }
 
         [Required]
         public string AttendanceStatus { get; set; }
+
+        public Personalinfo Personalinfo { get; set; }
     }
 }
