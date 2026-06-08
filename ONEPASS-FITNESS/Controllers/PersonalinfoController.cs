@@ -49,6 +49,7 @@ namespace ONEPASS_FITNESS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Lastname,DOB,Email,PhoneNumber")] Personalinfo personalinfo)
         {
+            //var profile = await GetCurrentProfileAsync();
             var userId = _userManager.GetUserId(User);
             if (userId == null)
             {
