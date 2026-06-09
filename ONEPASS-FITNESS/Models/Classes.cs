@@ -4,6 +4,7 @@ namespace ONEPASS_FITNESS.Models
 {
     public class Classes
     {
+        [Key]
         public int Classid { get; set; }
 
         [Required]

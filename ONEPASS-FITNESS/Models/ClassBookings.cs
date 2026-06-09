@@ -1,9 +1,11 @@
+using ONEPASS_FITNESS.Areas.Identity.Pages;
 using System.ComponentModel.DataAnnotations;
 
 namespace ONEPASS_FITNESS.Models
 {
     public class ClassBookings
     {
+        [Key]
         public int BookingID { get; set; }
 
         [Required]
@@ -20,6 +22,6 @@ namespace ONEPASS_FITNESS.Models
         [Required]
         public string AttendanceStatus { get; set; }
 
-        public Personalinfo Personalinfo { get; set; }
+        public AppUser appUser { get; set; }
     }
 }

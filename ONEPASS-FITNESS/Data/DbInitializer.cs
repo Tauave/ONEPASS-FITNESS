@@ -82,19 +82,7 @@ namespace ONEPASS_FITNESS.Data
                 }
             }
 
-            if (!context.Personalinfos.Any(p => p.IdentityUserId == user.Id))
-            {
-                context.Personalinfos.Add(new Personalinfo
-                {
-                    IdentityUserId = user.Id,
-                    Name = name,
-                    Lastname = lastname,
-                    DOB = DateOnly.Parse("1990-01-01"),
-                    Email = email,
-                    PhoneNumber = phone
-                });
-                context.SaveChanges();
-            }
+            
         }
     }
 }

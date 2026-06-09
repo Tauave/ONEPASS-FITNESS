@@ -5,15 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Data;
 using ONEPASS_FITNESS.Models;
 using System.Diagnostics;
+using ONEPASS_FITNESS.Areas.Identity.Pages;
 
 namespace ONEPASS_FITNESS.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<AppUser> _userManager;
 
-        public HomeController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public HomeController(ApplicationDbContext context, UserManager<AppUser> userManager)
         {
             _context = context;
             _userManager = userManager;
@@ -21,20 +22,7 @@ namespace ONEPASS_FITNESS.Controllers
 
         public async Task<IActionResult> Index()
         {
-            if (User.Identity != null && User.Identity.IsAuthenticated)
-            {
-                var userId = _userManager.GetUserId(User);
-                var profile = await _context.Personalinfos
-                    .FirstOrDefaultAsync(p => p.IdentityUserId == userId);
-                if (profile != null)
-                {
-                    ViewBag.DisplayName = profile.Name;
-                }
-                else
-                {
-                    ViewBag.DisplayName = User.Identity.Name;
-                }
-            }
+            
 
             return View();
         }

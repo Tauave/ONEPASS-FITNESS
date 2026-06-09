@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ONEPASS_FITNESS.Areas.Identity.Pages;
 using ONEPASS_FITNESS.Data;
 
 namespace ONEPASS_FITNESS
@@ -13,7 +14,7 @@ namespace ONEPASS_FITNESS
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+            builder.Services.AddDefaultIdentity<AppUser>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = false;
                 options.Password.RequireDigit = true;
@@ -54,10 +55,10 @@ namespace ONEPASS_FITNESS
             {
                 using var scope = app.Services.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                DbInitializer.Initialize(context, userManager, roleManager);
+                //DbInitializer.Initialize(context, userManager, roleManager);
             }
 
             app.Run();

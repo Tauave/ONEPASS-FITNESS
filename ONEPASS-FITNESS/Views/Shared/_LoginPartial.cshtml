@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
+@using ONEPASS_FITNESS.Areas.Identity.Pages
+@inject SignInManager<AppUser> SignInManager
 
 <ul class="navbar-nav align-items-sm-center">
 @if (SignInManager.IsSignedIn(User))

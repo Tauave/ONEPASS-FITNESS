@@ -1,9 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ONEPASS_FITNESS.Areas.Identity.Pages;
+using System.ComponentModel.DataAnnotations;
 
 namespace ONEPASS_FITNESS.Models
 {
     public class Progress
     {
+
         public int ProgressId { get; set; }
 
         [Required]
@@ -16,6 +18,6 @@ namespace ONEPASS_FITNESS.Models
         [Required]
         public DateOnly DateRecorded { get; set; }
 
-        public Personalinfo Personalinfo { get; set; }
+        public AppUser appUser { get; set; }
     }
 }

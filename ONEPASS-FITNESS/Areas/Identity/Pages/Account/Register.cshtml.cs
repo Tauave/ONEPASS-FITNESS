@@ -8,22 +8,23 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using ONEPASS_FITNESS.Data;
 using ONEPASS_FITNESS.Models;
+using ONEPASS_FITNESS.Areas.Identity.Pages;
 
 namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly IUserStore<IdentityUser> _userStore;
-        private readonly IUserEmailStore<IdentityUser> _emailStore;
+        private readonly SignInManager<AppUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly IUserStore<AppUser> _userStore;
+        private readonly IUserEmailStore<AppUser> _emailStore;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<RegisterModel> _logger;
 
         public RegisterModel(
-            UserManager<IdentityUser> userManager,
-            IUserStore<IdentityUser> userStore,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<AppUser> userManager,
+            IUserStore<AppUser> userStore,
+            SignInManager<AppUser> signInManager,
             ApplicationDbContext context,
             ILogger<RegisterModel> logger)
         {
@@ -94,12 +95,16 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            var user = new IdentityUser
+            var user = new AppUser
             {
-                UserName = Input.Email,
+                Name = Input.Name,
+                Lastname = Input.Lastname,
+                PhoneNumber = Input.PhoneNumber,
+                DOB = Input.DOB,
                 Email = Input.Email,
                 EmailConfirmed = true
             };
+
 
             var result = await _userManager.CreateAsync(user, Input.Password);
 
@@ -112,15 +117,7 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            _context.Personalinfos.Add(new Personalinfo
-            {
-                IdentityUserId = user.Id,
-                Name = Input.Name,
-                Lastname = Input.Lastname,
-                Email = Input.Email,
-                PhoneNumber = Input.PhoneNumber,
-                DOB = Input.DOB
-            });
+            
             await _context.SaveChangesAsync();
 
             await _userManager.AddToRoleAsync(user, "Member");
@@ -130,13 +127,13 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             return LocalRedirect(returnUrl);
         }
 
-        private IUserEmailStore<IdentityUser> GetEmailStore()
+        private IUserEmailStore<AppUser> GetEmailStore()
         {
             if (!_userManager.SupportsUserEmail)
             {
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
-            return (IUserEmailStore<IdentityUser>)_userStore;
+            return (IUserEmailStore<AppUser>)_userStore;
         }
     }
 }
