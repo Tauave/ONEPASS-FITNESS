@@ -8,8 +8,8 @@ namespace ONEPASS_FITNESS.Models
 
         public int ProgressId { get; set; }
 
-        [Required]
-        public int Personalinfoid { get; set; }
+        //[Required]
+        //public int Personalinfoid { get; set; }
 
         [Required]
         [Range(0.01, double.MaxValue)]
