@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ONEPASS_FITNESS.Data.Migrations
+namespace ONEPASS_FITNESS.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class updatedmigrations : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,6 +30,10 @@ namespace ONEPASS_FITNESS.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Lastname = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DOB = table.Column<DateOnly>(type: "date", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -38,7 +42,6 @@ namespace ONEPASS_FITNESS.Data.Migrations
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -174,27 +177,24 @@ namespace ONEPASS_FITNESS.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Personalinfos",
+                name: "Progress",
                 columns: table => new
                 {
-                    PersonalinfoId = table.Column<int>(type: "int", nullable: false)
+                    ProgressId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    IdentityUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Lastname = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DOB = table.Column<DateOnly>(type: "date", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Personalinfoid = table.Column<int>(type: "int", nullable: false),
+                    Weight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DateRecorded = table.Column<DateOnly>(type: "date", nullable: false),
+                    appUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Personalinfos", x => x.PersonalinfoId);
+                    table.PrimaryKey("PK_Progress", x => x.ProgressId);
                     table.ForeignKey(
-                        name: "FK_Personalinfos_AspNetUsers_IdentityUserId",
-                        column: x => x.IdentityUserId,
+                        name: "FK_Progress_AspNetUsers_appUserId",
+                        column: x => x.appUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -206,43 +206,22 @@ namespace ONEPASS_FITNESS.Data.Migrations
                     Classid = table.Column<int>(type: "int", nullable: false),
                     Personalinfoid = table.Column<int>(type: "int", nullable: false),
                     BookingDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    AttendanceStatus = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    AttendanceStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    appUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClassBookings", x => x.BookingID);
                     table.ForeignKey(
+                        name: "FK_ClassBookings_AspNetUsers_appUserId",
+                        column: x => x.appUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_ClassBookings_Classes_Classid",
                         column: x => x.Classid,
                         principalTable: "Classes",
                         principalColumn: "Classid",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ClassBookings_Personalinfos_Personalinfoid",
-                        column: x => x.Personalinfoid,
-                        principalTable: "Personalinfos",
-                        principalColumn: "PersonalinfoId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Progress",
-                columns: table => new
-                {
-                    ProgressId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Personalinfoid = table.Column<int>(type: "int", nullable: false),
-                    Weight = table.Column<decimal>(type: "decimal(6,2)", precision: 6, scale: 2, nullable: false),
-                    DateRecorded = table.Column<DateOnly>(type: "date", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Progress", x => x.ProgressId);
-                    table.ForeignKey(
-                        name: "FK_Progress_Personalinfos_Personalinfoid",
-                        column: x => x.Personalinfoid,
-                        principalTable: "Personalinfos",
-                        principalColumn: "PersonalinfoId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -286,25 +265,19 @@ namespace ONEPASS_FITNESS.Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ClassBookings_appUserId",
+                table: "ClassBookings",
+                column: "appUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ClassBookings_Classid",
                 table: "ClassBookings",
                 column: "Classid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClassBookings_Personalinfoid",
-                table: "ClassBookings",
-                column: "Personalinfoid");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Personalinfos_IdentityUserId",
-                table: "Personalinfos",
-                column: "IdentityUserId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Progress_Personalinfoid",
+                name: "IX_Progress_appUserId",
                 table: "Progress",
-                column: "Personalinfoid");
+                column: "appUserId");
         }
 
         /// <inheritdoc />
@@ -336,9 +309,6 @@ namespace ONEPASS_FITNESS.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Classes");
-
-            migrationBuilder.DropTable(
-                name: "Personalinfos");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

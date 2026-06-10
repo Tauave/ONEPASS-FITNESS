@@ -9,11 +9,11 @@ using ONEPASS_FITNESS.Data;
 
 #nullable disable
 
-namespace ONEPASS_FITNESS.Data.Migrations
+namespace ONEPASS_FITNESS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260608024930_Dob")]
-    partial class Dob
+    [Migration("20260610001419_updatedmigrations")]
+    partial class updatedmigrations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -75,71 +75,6 @@ namespace ONEPASS_FITNESS.Data.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex")
-                        .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -227,6 +162,83 @@ namespace ONEPASS_FITNESS.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ONEPASS_FITNESS.Areas.Identity.Pages.AppUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("DOB")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Lastname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
             modelBuilder.Entity("ONEPASS_FITNESS.Models.ClassBookings", b =>
                 {
                     b.Property<int>("BookingID")
@@ -248,11 +260,14 @@ namespace ONEPASS_FITNESS.Data.Migrations
                     b.Property<int>("Personalinfoid")
                         .HasColumnType("int");
 
+                    b.Property<string>("appUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("BookingID");
 
                     b.HasIndex("Classid");
 
-                    b.HasIndex("Personalinfoid");
+                    b.HasIndex("appUserId");
 
                     b.ToTable("ClassBookings");
                 });
@@ -286,45 +301,6 @@ namespace ONEPASS_FITNESS.Data.Migrations
                     b.ToTable("Classes");
                 });
 
-            modelBuilder.Entity("ONEPASS_FITNESS.Models.Personalinfo", b =>
-                {
-                    b.Property<int>("PersonalinfoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PersonalinfoId"));
-
-                    b.Property<DateOnly>("DOB")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("IdentityUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Lastname")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("PersonalinfoId");
-
-                    b.HasIndex("IdentityUserId")
-                        .IsUnique();
-
-                    b.ToTable("Personalinfo", (string)null);
-                });
-
             modelBuilder.Entity("ONEPASS_FITNESS.Models.Progress", b =>
                 {
                     b.Property<int>("ProgressId")
@@ -340,12 +316,14 @@ namespace ONEPASS_FITNESS.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Weight")
-                        .HasPrecision(6, 2)
-                        .HasColumnType("decimal(6,2)");
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("appUserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ProgressId");
 
-                    b.HasIndex("Personalinfoid");
+                    b.HasIndex("appUserId");
 
                     b.ToTable("Progress");
                 });
@@ -361,7 +339,7 @@ namespace ONEPASS_FITNESS.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("ONEPASS_FITNESS.Areas.Identity.Pages.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -370,7 +348,7 @@ namespace ONEPASS_FITNESS.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("ONEPASS_FITNESS.Areas.Identity.Pages.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -385,7 +363,7 @@ namespace ONEPASS_FITNESS.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("ONEPASS_FITNESS.Areas.Identity.Pages.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -394,7 +372,7 @@ namespace ONEPASS_FITNESS.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("ONEPASS_FITNESS.Areas.Identity.Pages.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -406,50 +384,37 @@ namespace ONEPASS_FITNESS.Data.Migrations
                     b.HasOne("ONEPASS_FITNESS.Models.Classes", "Class")
                         .WithMany("ClassBookings")
                         .HasForeignKey("Classid")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ONEPASS_FITNESS.Models.Personalinfo", "Personalinfo")
-                        .WithMany("ClassBookings")
-                        .HasForeignKey("Personalinfoid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("ONEPASS_FITNESS.Areas.Identity.Pages.AppUser", "appUser")
+                        .WithMany("ClassBookings")
+                        .HasForeignKey("appUserId");
 
                     b.Navigation("Class");
 
-                    b.Navigation("Personalinfo");
-                });
-
-            modelBuilder.Entity("ONEPASS_FITNESS.Models.Personalinfo", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
-                        .WithOne()
-                        .HasForeignKey("ONEPASS_FITNESS.Models.Personalinfo", "IdentityUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("appUser");
                 });
 
             modelBuilder.Entity("ONEPASS_FITNESS.Models.Progress", b =>
                 {
-                    b.HasOne("ONEPASS_FITNESS.Models.Personalinfo", "Personalinfo")
+                    b.HasOne("ONEPASS_FITNESS.Areas.Identity.Pages.AppUser", "appUser")
                         .WithMany("Progress")
-                        .HasForeignKey("Personalinfoid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("appUserId");
 
-                    b.Navigation("Personalinfo");
+                    b.Navigation("appUser");
+                });
+
+            modelBuilder.Entity("ONEPASS_FITNESS.Areas.Identity.Pages.AppUser", b =>
+                {
+                    b.Navigation("ClassBookings");
+
+                    b.Navigation("Progress");
                 });
 
             modelBuilder.Entity("ONEPASS_FITNESS.Models.Classes", b =>
                 {
                     b.Navigation("ClassBookings");
-                });
-
-            modelBuilder.Entity("ONEPASS_FITNESS.Models.Personalinfo", b =>
-                {
-                    b.Navigation("ClassBookings");
-
-                    b.Navigation("Progress");
                 });
 #pragma warning restore 612, 618
         }

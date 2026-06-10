@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace ONEPASS_FITNESS.Data.Migrations
+namespace ONEPASS_FITNESS.Migrations
 {
     /// <inheritdoc />
-    public partial class Dob : Migration
+    public partial class updte : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

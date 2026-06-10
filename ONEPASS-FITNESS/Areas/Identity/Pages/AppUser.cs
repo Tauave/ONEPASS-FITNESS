@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿
+using Microsoft.AspNetCore.Identity;
 using ONEPASS_FITNESS.Models;
 using System.ComponentModel.DataAnnotations;
 
@@ -10,6 +11,8 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages
 
         [Required]
         public string Lastname { get; set; }
+
+        
 
         [Required]
         [AgeValidation]
@@ -32,17 +35,14 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages
             }
         }
 
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-
+     
         [Required]
         [Phone]
         public string PhoneNumber { get; set; }
 
-        public ICollection<ClassBookings> ClassBookings { get; set; } = new List<ClassBookings>();
+        public ICollection<ClassBookings>? ClassBookings { get; set; } = new List<ClassBookings>();
 
-        public ICollection<Progress> Progress { get; set; } = new List<Progress>();
+        public ICollection<Progress>? Progress { get; set; } = new List<Progress>();
 
     }
 }
