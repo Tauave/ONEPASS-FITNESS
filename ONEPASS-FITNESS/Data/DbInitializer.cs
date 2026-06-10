@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ONEPASS_FITNESS.Areas.Identity.Pages;
 using ONEPASS_FITNESS.Models;
 
 namespace ONEPASS_FITNESS.Data
@@ -10,7 +11,7 @@ namespace ONEPASS_FITNESS.Data
 
         public static void Initialize(
             ApplicationDbContext context,
-            UserManager<IdentityUser> userManager,
+            UserManager<AppUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
             context.Database.Migrate();
@@ -30,13 +31,7 @@ namespace ONEPASS_FITNESS.Data
                 }
             }
 
-            SeedStaffUser(userManager, context, "sarah.mitchell@test.com", StaffPassword, new[] { "Admin", "Trainer" }, "Sarah", "Mitchell", "0211000001");
-            SeedStaffUser(userManager, context, "james.cooper@test.com", StaffPassword, new[] { "Admin", "Trainer" }, "James", "Cooper", "0211000002");
-
-            SeedStaffUser(userManager, context, "emma.lewis@test.com", StaffPassword, new[] { "Trainer" }, "Emma", "Lewis", "0212000001");
-            SeedStaffUser(userManager, context, "olivia.chen@test.com", StaffPassword, new[] { "Trainer" }, "Olivia", "Chen", "0212000002");
-            SeedStaffUser(userManager, context, "liam.brooks@test.com", StaffPassword, new[] { "Trainer" }, "Liam", "Brooks", "0212000003");
-
+         
             if (!context.Classes.Any())
             {
                 var classes = new Classes[]

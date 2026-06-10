@@ -53,9 +53,6 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             [Display(Name = "Lastname")]
             public string Lastname { get; set; }
 
-            [Required]
-            [Display(Name = "Username")]
-            public string UserName { get; set; }
 
             [Required]
             [EmailAddress]
@@ -101,9 +98,9 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
 
             var user = new AppUser
             {
+                UserName = Input.Email,
                 Name = Input.Name,
                 Lastname = Input.Lastname,
-                UserName = Input.UserName,
                 PhoneNumber = Input.PhoneNumber,
                 DOB = Input.DOB,
                 Email = Input.Email,

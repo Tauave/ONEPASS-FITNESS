@@ -58,7 +58,7 @@ namespace ONEPASS_FITNESS
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                //DbInitializer.Initialize(context, userManager, roleManager);
+                DbInitializer.Initialize(context, userManager, roleManager);
             }
 
             app.Run();
