@@ -11,7 +11,7 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages
         public string Name { get; set; }
 
        
-        //public string MiddleName { get; set; }
+        public string MiddleName { get; set; }
 
         [Required]
         public string Lastname { get; set; }

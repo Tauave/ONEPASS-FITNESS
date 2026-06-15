@@ -106,6 +106,7 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             {
                 UserName = Input.Email,
                 Name = Input.Name,
+                MiddleName = Input.MiddleName,
                 Lastname = Input.Lastname,
                 PhoneNumber = Input.PhoneNumber,
                 DOB = Input.DOB,
