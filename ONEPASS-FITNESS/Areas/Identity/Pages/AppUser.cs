@@ -7,7 +7,11 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages
 {
     public class AppUser: IdentityUser  
     {
+        [Required]
         public string Name { get; set; }
+
+       
+        //public string MiddleName { get; set; }
 
         [Required]
         public string Lastname { get; set; }

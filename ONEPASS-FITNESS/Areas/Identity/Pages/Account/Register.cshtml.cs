@@ -1,14 +1,15 @@
 #nullable disable
 
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using ONEPASS_FITNESS.Areas.Identity.Pages;
 using ONEPASS_FITNESS.Data;
 using ONEPASS_FITNESS.Models;
-using ONEPASS_FITNESS.Areas.Identity.Pages;
+using System.ComponentModel.DataAnnotations;
+using static ONEPASS_FITNESS.Areas.Identity.Pages.AppUser;
 
 namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
 {
@@ -50,6 +51,10 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             public string Name { get; set; }
 
             [Required]
+            [Display(Name = "Middle Name")]
+            public string MiddleName { get; set; }
+
+            [Required]
             [Display(Name = "Lastname")]
             public string Lastname { get; set; }
 
@@ -66,6 +71,7 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
 
             [Required]
             [Display(Name = "Date of Birth")]
+            [AgeValidation]
             public DateOnly DOB { get; set; }
 
             [Required]
