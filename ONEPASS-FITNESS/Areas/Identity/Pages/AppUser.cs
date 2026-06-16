@@ -10,8 +10,6 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages
         [Required]
         public string Name { get; set; }
 
-       
-        public string MiddleName { get; set; }
 
         [Required]
         public string Lastname { get; set; }
@@ -39,7 +37,7 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages
             }
         }
 
-     
+
         [Required]
         [Phone]
         public string PhoneNumber { get; set; }

@@ -47,37 +47,28 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
-            [Display(Name = "Name")]
             public string Name { get; set; }
 
-            [Required]
-            [Display(Name = "Middle Name")]
-            public string MiddleName { get; set; }
 
             [Required]
-            [Display(Name = "Lastname")]
             public string Lastname { get; set; }
 
 
             [Required]
             [EmailAddress]
-            [Display(Name = "Email")]
             public string Email { get; set; }
 
             [Required]
             [Phone]
-            [Display(Name = "Phone Number")]
             public string PhoneNumber { get; set; }
 
             [Required]
-            [Display(Name = "Date of Birth")]
             [AgeValidation]
             public DateOnly DOB { get; set; }
 
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
@@ -106,7 +97,6 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             {
                 UserName = Input.Email,
                 Name = Input.Name,
-                MiddleName = Input.MiddleName,
                 Lastname = Input.Lastname,
                 PhoneNumber = Input.PhoneNumber,
                 DOB = Input.DOB,
