@@ -1,0 +1,65 @@
+@model IEnumerable<ONEPASS_FITNESS.Models.Classes>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Classname)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Date)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Starttime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Endtime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Capacity)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ClassBookings)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => item.Classname)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Date)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Starttime)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Endtime)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Capacity)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.ClassBookings)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Classid">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Classid">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Classid">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
