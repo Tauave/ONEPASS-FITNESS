@@ -48,13 +48,13 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
         {
             [Required]
             [StringLength(50, MinimumLength = 2, ErrorMessage = "Name must be between {2} and {1} characters long.")]
-            [RegularExpression(@"^[\p{L}\p{M} '\-]+$", ErrorMessage = "Name may contain letters (including accented), spaces, hyphens and apostrophes only.")]
+            [RegularExpression(@"^[\p{L}][\p{L}\s'\-]{1,49}$", ErrorMessage = "Name can only contain letters, spaces, hyphens, and apostrophes.")]
             public string Name { get; set; }
 
 
             [Required]
             [StringLength(50, MinimumLength = 2, ErrorMessage = "Lastname must be between {2} and {1} characters long.")]
-            [RegularExpression(@"^[\p{L}\p{M} '\-]+$", ErrorMessage = "Lastname may contain letters (including accented), spaces, hyphens and apostrophes only.")]
+            [RegularExpression(@"^[\p{L}][\p{L}\s'\-]{1,49}$", ErrorMessage = "Lastname can only contain letters, spaces, hyphens, and apostrophes.")]
             public string Lastname { get; set; }
 
 
