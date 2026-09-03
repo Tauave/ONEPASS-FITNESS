@@ -50,25 +50,27 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
 
             [Required]
             [StringLength(50, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 50 characters long.")]
-            //[RegularExpression(@"^[\p{L}]+(?:[ '-][\p{L}]+)*$", ErrorMessage = "Name can only contain letters, spaces, hyphens, and apostrophes.")]
+            [RegularExpression(@"^[A-Za-z\s'-]+$", ErrorMessage = "Name can only contain letters, spaces, hyphens, and apostrophes.")]
             public string Name { get; set; }
 
 
             [Required]
             [StringLength(50, MinimumLength = 2, ErrorMessage = "Lastname must be between 2 and 50 characters long.")]
-            [RegularExpression(@"^[\p{L}](?:[\p{L}\s'-]{0,48}[\p{L}])?$", ErrorMessage = "Lastname can only contain letters, spaces, hyphens, and apostrophes.")]
+            [RegularExpression(@"^[A-Za-z\s'-]+$", ErrorMessage = "Lastname can only contain letters, spaces, hyphens, and apostrophes.")]
             public string Lastname { get; set; }
 
 
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "Email is required.")]
+            [EmailAddress(ErrorMessage = "Invalid email address.")]
+            [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$", ErrorMessage = "Invalid email address.")]
+            [RegularExpression(@"^[A-Za-z0-9._-]+$")]
             public string Email { get; set; }
 
             [Required]
             [Phone]
             public string PhoneNumber { get; set; }
 
-            [Required]
+            [Required (ErrorMessage = "Your Date of birth is required.") ]
             [AgeValidation]
             public DateOnly DOB { get; set; }
 
