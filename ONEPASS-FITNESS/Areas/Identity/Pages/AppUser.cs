@@ -17,7 +17,7 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages
         
 
         [Required]
-        [AgeValidation]
+        //[AgeValidation]
         public DateOnly DOB { get; set; }
         public class AgeValidationAttribute : ValidationAttribute
         {

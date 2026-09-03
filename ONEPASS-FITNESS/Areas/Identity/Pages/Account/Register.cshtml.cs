@@ -63,7 +63,6 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             [Required(ErrorMessage = "Email is required.")]
             [EmailAddress(ErrorMessage = "Invalid email address.")]
             [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$", ErrorMessage = "Invalid email address.")]
-            [RegularExpression(@"^[A-Za-z0-9._-]+$")]
             public string Email { get; set; }
 
             [Required]
@@ -75,7 +74,7 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             public DateOnly DOB { get; set; }
 
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             public string Password { get; set; }
 
