@@ -59,7 +59,6 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             [RegularExpression(@"^[A-Za-z\s'-]+$", ErrorMessage = "Lastname can only contain letters, spaces, hyphens, and apostrophes.")]
             public string Lastname { get; set; }
 
-
             [Required(ErrorMessage = "Email is required.")]
             [EmailAddress(ErrorMessage = "Invalid email address.")]
             [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$", ErrorMessage = "Invalid email address.")]
