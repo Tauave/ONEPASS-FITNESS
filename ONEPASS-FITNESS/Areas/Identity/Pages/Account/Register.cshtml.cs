@@ -63,9 +63,10 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             [Required(ErrorMessage = "Email is required.")]
             [EmailAddress(ErrorMessage = "Invalid email address.")]
             [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$", ErrorMessage = "Invalid email address.")]
-            [RegularExpression(@"^[A-Za-z0-9._-]+$")]
+            //[RegularExpression(@"^[A-Za-z0-9._-]+$")]
             public string Email { get; set; }
 
+              
             [Required]
             [Phone]
             public string PhoneNumber { get; set; }
