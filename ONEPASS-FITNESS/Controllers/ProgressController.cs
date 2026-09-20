@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Models;
 using ONEPASS_FITNESS.Data;
+using System.Security.Claims;
 
 public class ProgressController : Controller
 {
@@ -16,7 +17,12 @@ public class ProgressController : Controller
     // GET: PROGRESS
     public async Task<IActionResult> Index()    
     {
-        return View(await _context.Progress.ToListAsync());
+        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var items = await _context.Progress
+            .Where(p => p.AppUserId == userId)
+            .ToListAsync();
+        return View(items);
     }
 
     // GET: PROGRESSS/Details/5
@@ -27,8 +33,11 @@ public class ProgressController : Controller
             return NotFound();
         }
 
+        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         var progress = await _context.Progress
-            .FirstOrDefaultAsync(m => m.ProgressId == id);
+            .FirstOrDefaultAsync(m => m.ProgressId == id && m.AppUserId == userId);
         if (progress == null)
         {
             return NotFound();
@@ -48,8 +57,14 @@ public class ProgressController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("ProgressId,Weight,DateRecorded,appUser")] Progress progress)
+    public async Task<IActionResult> Create([Bind("ProgressId,Weight")] Progress progress)
     {
+        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
+
+        // set owner and timestamp server-side so the form cannot override them
+        progress.AppUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        progress.DateRecorded = DateOnly.FromDateTime(DateTime.UtcNow);
+
         if (ModelState.IsValid)
         {
             _context.Add(progress);
@@ -118,8 +133,11 @@ public class ProgressController : Controller
             return NotFound();
         }
 
+        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         var progress = await _context.Progress
-            .FirstOrDefaultAsync(m => m.ProgressId == id);
+            .FirstOrDefaultAsync(m => m.ProgressId == id && m.AppUserId == userId);
         if (progress == null)
         {
             return NotFound();
@@ -131,19 +149,25 @@ public class ProgressController : Controller
     // POST: PROGRESS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var progress = await _context.Progress.FindAsync(id);
-        if (progress != null)
+        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var progress = await _context.Progress
+            .FirstOrDefaultAsync(p => p.ProgressId == id && p.AppUserId == userId);
+
+        if (progress == null)
         {
-            _context.Progress.Remove(progress);
+            return NotFound();
         }
 
+        _context.Progress.Remove(progress);
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
 
-    private bool ProgressExists(int? id)
+    private bool ProgressExists(int id)
     {
         return _context.Progress.Any(e => e.ProgressId == id);
     }

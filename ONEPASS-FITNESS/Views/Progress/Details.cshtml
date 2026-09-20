@@ -16,7 +16,7 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Weight)
         </dd>
-    </dl>
+        </dl>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.DateRecorded)
         </dt>
@@ -24,13 +24,7 @@
             @Html.DisplayFor(model => model.DateRecorded)
         </dd>
     </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.appUser)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.appUser)
-        </dd>
-    </dl>
+
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.ProgressId">Edit</a> |
