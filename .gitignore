@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/ONEPASS-FITNESS/Controllers/ProgressesController.cs
+/ONEPASS-FITNESS/Controllers/ProgressesController.cs
