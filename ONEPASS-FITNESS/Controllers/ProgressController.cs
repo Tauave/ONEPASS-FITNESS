@@ -41,6 +41,14 @@ namespace ONEPASS_FITNESS.Controllers
                 return View(invalidModel);
             }
 
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (newEntry.Date > today)
+            {
+                ModelState.AddModelError("NewEntry.Date", "Date cannot be in the future.");
+                var invalidModel = await BuildIndexViewModelAsync(newEntry);
+                return View(invalidModel);
+            }
+
             newEntry.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
             _context.WeightEntries.Add(newEntry);
