@@ -46,5 +46,9 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages
 
         public ICollection<Progress>? Progress { get; set; } = new List<Progress>();
 
+        public ICollection<WeightEntry> WeightEntries { get; set; } = new List<WeightEntry>();
+
+        public ICollection<WeightGoal> WeightGoals { get; set; } = new List<WeightGoal>();
+
     }
 }

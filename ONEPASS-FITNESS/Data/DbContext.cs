@@ -17,11 +17,12 @@ namespace ONEPASS_FITNESS.Data
         public DbSet<Classes> Classes { get; set; }
         public DbSet<ClassBookings> ClassBookings { get; set; }
         public DbSet<Progress> Progress { get; set; }
+        public DbSet<WeightEntry> WeightEntries { get; set; }
+        public DbSet<WeightGoal> WeightGoals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
         }
     }
 }

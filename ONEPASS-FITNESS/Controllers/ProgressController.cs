@@ -1,174 +1,129 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ONEPASS_FITNESS.Models;
 using ONEPASS_FITNESS.Data;
+using ONEPASS_FITNESS.Models;
+using ONEPASS_FITNESS.Services;
 using System.Security.Claims;
 
-public class ProgressController : Controller
+namespace ONEPASS_FITNESS.Controllers
 {
-    private readonly ApplicationDbContext _context;
-
-    public ProgressController(ApplicationDbContext context)
+    public class ProgressController : Controller
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    // GET: PROGRESS
-    public async Task<IActionResult> Index()    
-    {
-        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var items = await _context.Progress
-            .Where(p => p.AppUserId == userId)
-            .ToListAsync();
-        return View(items);
-    }
-
-    // GET: PROGRESSS/Details/5
-    public async Task<IActionResult> Details(int? id)
-    {
-        if (id == null)
+        public ProgressController(ApplicationDbContext context)
         {
-            return NotFound();
+            _context = context;
         }
 
-        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        var progress = await _context.Progress
-            .FirstOrDefaultAsync(m => m.ProgressId == id && m.AppUserId == userId);
-        if (progress == null)
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-            return NotFound();
+            if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
+            var model = await BuildIndexViewModelAsync(new WeightEntry
+            {
+                Date = DateOnly.FromDateTime(DateTime.Today)
+            });
+            return View(model);
         }
 
-        return View(progress);
-    }
-
-    // GET: PROGRESS/Create
-    public IActionResult Create()
-    {
-        return View();
-    }
-
-    // POST: PROGRESSS/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("ProgressId,Weight")] Progress progress)
-    {
-        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
-
-        // set owner and timestamp server-side so the form cannot override them
-        progress.AppUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        progress.DateRecorded = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        if (ModelState.IsValid)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Index([Bind("NewEntry")] ProgressIndexViewModel viewModel)
         {
-            _context.Add(progress);
+            if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
+
+            var newEntry = viewModel.NewEntry;
+
+            if (!ModelState.IsValid)
+            {
+                var invalidModel = await BuildIndexViewModelAsync(newEntry);
+                return View(invalidModel);
+            }
+
+            newEntry.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            _context.WeightEntries.Add(newEntry);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError("NewEntry.Date", "You already logged weight for this date.");
+                var invalidModel = await BuildIndexViewModelAsync(newEntry);
+                return View(invalidModel);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Goal()
+        {
+            if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var goal = await _context.WeightGoals.FirstOrDefaultAsync(g => g.UserId == userId);
+            return View(goal ?? new WeightGoal());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Goal([Bind("StartWeightKg,TargetWeightKg,TargetDate")] WeightGoal model)
+        {
+            if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var existing = await _context.WeightGoals.FirstOrDefaultAsync(g => g.UserId == userId);
+
+            if (existing == null)
+            {
+                model.UserId = userId;
+                _context.WeightGoals.Add(model);
+            }
+            else
+            {
+                existing.StartWeightKg = model.StartWeightKg;
+                existing.TargetWeightKg = model.TargetWeightKg;
+                existing.TargetDate = model.TargetDate;
+            }
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-        return View(progress);
-    }
 
-    // GET: PROGRESS/Edit/5
-    public async Task<IActionResult> Edit(int? id)
-    {
-        if (id == null)
+        private async Task<ProgressIndexViewModel> BuildIndexViewModelAsync(WeightEntry newEntry)
         {
-            return NotFound();
-        }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-        var progress = await _context.Progress.FindAsync(id);
-        if (progress == null)
-        {
-            return NotFound();
-        }
-        return View(progress);
-    }
+            var entries = await _context.WeightEntries
+                .Where(e => e.UserId == userId)
+                .OrderBy(e => e.Date)
+                .ToListAsync();
 
-    // POST: PROGRESS/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? id, [Bind("ProgressId,Weight,DateRecorded,appUser")] Progress progress)
-    {
-        if (id != progress.ProgressId)
-        {
-            return NotFound();
-        }
+            var goal = await _context.WeightGoals.FirstOrDefaultAsync(g => g.UserId == userId);
 
-        if (ModelState.IsValid)
-        {
-            try
+            ProgressSummary? summary = null;
+            IReadOnlyList<(DateOnly Date, decimal AverageKg)> movingAverage = Array.Empty<(DateOnly, decimal)>();
+
+            if (entries.Count > 0)
             {
-                _context.Update(progress);
-                await _context.SaveChangesAsync();
+                movingAverage = ProgressCalculator.MovingAverage7Day(entries);
+                if (goal != null)
+                    summary = ProgressCalculator.Calculate(goal, entries);
             }
-            catch (DbUpdateConcurrencyException)
+
+            return new ProgressIndexViewModel
             {
-                if (!ProgressExists(progress.ProgressId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
+                NewEntry = newEntry,
+                Entries = entries,
+                Goal = goal,
+                Summary = summary,
+                MovingAverage = movingAverage
+            };
         }
-        return View(progress);
-    }
-
-    // GET: PROGRESS/Delete/5
-    public async Task<IActionResult> Delete(int? id)
-    {
-        if (id == null)
-        {
-            return NotFound();
-        }
-
-        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        var progress = await _context.Progress
-            .FirstOrDefaultAsync(m => m.ProgressId == id && m.AppUserId == userId);
-        if (progress == null)
-        {
-            return NotFound();
-        }
-
-        return View(progress);
-    }
-
-    // POST: PROGRESS/Delete/5
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        var progress = await _context.Progress
-            .FirstOrDefaultAsync(p => p.ProgressId == id && p.AppUserId == userId);
-
-        if (progress == null)
-        {
-            return NotFound();
-        }
-
-        _context.Progress.Remove(progress);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    private bool ProgressExists(int id)
-    {
-        return _context.Progress.Any(e => e.ProgressId == id);
     }
 }
