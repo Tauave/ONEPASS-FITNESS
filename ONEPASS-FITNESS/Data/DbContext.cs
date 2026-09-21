@@ -29,9 +29,9 @@ namespace ONEPASS_FITNESS.Data
 
             // Seed basic class types so they always exist
             modelBuilder.Entity<Models.ClassType>().HasData(
-                new Models.ClassType { Id = 1, Name = "HIIT", Description = "High intensity interval training", DurationMinutes = 45 },
-                new Models.ClassType { Id = 2, Name = "Yoga", Description = "Vinyasa flow and stretching", DurationMinutes = 60 },
-                new Models.ClassType { Id = 3, Name = "Pilates", Description = "Mat Pilates core and mobility", DurationMinutes = 50 }
+                new Models.ClassType { Id = 1, Name = "HIIT", Description = "High intensity interval training", DurationMinutes = 45, IsActive = true },
+                new Models.ClassType { Id = 2, Name = "Yoga", Description = "Vinyasa flow and stretching", DurationMinutes = 60, IsActive = true },
+                new Models.ClassType { Id = 3, Name = "Pilates", Description = "Mat Pilates core and mobility", DurationMinutes = 50, IsActive = true }
             );
 
             // Unique index to prevent duplicate bookings for same user/session

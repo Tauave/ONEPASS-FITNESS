@@ -1,0 +1,32 @@
+@using ONEPASS_FITNESS.Services
+@model ONEPASS_FITNESS.Models.ClassSession
+@{
+    ViewData["Title"] = "Delete session";
+    var tz = (GymTimeZoneProvider)ViewData["TimeZone"]!;
+    var bookingCount = Model.Bookings?.Count ?? 0;
+}
+
+<h1>Delete session</h1>
+
+<p>Are you sure you want to delete this session?</p>
+
+<dl class="row">
+    <dt class="col-sm-3">Class</dt>
+    <dd class="col-sm-9">@Model.ClassType?.Name</dd>
+    <dt class="col-sm-3">Start (@tz.TimeZone.Id)</dt>
+    <dd class="col-sm-9">@tz.ToLocal(Model.StartTime).ToString("ddd, dd MMM yyyy HH:mm")</dd>
+    <dt class="col-sm-3">Capacity</dt>
+    <dd class="col-sm-9">@Model.Capacity</dd>
+    <dt class="col-sm-3">Bookings</dt>
+    <dd class="col-sm-9">@bookingCount</dd>
+</dl>
+
+@if (bookingCount > 0)
+{
+    <div class="alert alert-warning">This session has @bookingCount booking(s). Deleting it cancels them.</div>
+}
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
+    <button type="submit" class="btn btn-danger">Delete</button>
+</form>
+<a class="btn btn-link" asp-action="Index">Cancel</a>

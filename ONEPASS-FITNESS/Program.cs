@@ -26,6 +26,8 @@ namespace ONEPASS_FITNESS
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            builder.Services.AddSingleton<Services.GymTimeZoneProvider>();
+
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
 
