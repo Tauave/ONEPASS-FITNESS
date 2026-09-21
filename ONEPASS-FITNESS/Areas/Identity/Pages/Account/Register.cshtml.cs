@@ -9,6 +9,7 @@ using ONEPASS_FITNESS.Areas.Identity.Pages;
 using ONEPASS_FITNESS.Data;
 using ONEPASS_FITNESS.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using static ONEPASS_FITNESS.Areas.Identity.Pages.AppUser;
 
 namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
@@ -96,6 +97,15 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
+            // Normalize name fields server-side to ensure consistent casing
+            Input.Name = NormalizeName(Input.Name);
+            Input.Lastname = NormalizeName(Input.Lastname);
+
+            // Re-validate the Input model's name fields after normalization
+            ModelState.Remove("Input.Name");
+            ModelState.Remove("Input.Lastname");
+            TryValidateModel(Input, "Input");
+
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -132,6 +142,18 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             _logger.LogInformation("User created a new account with profile.");
             await _signInManager.SignInAsync(user, isPersistent: false);
             return LocalRedirect(returnUrl);
+        }
+
+        private static string NormalizeName(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return s;
+            var parts = s.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < parts.Length; i++)
+            {
+                var p = parts[i];
+                parts[i] = char.ToUpperInvariant(p[0]) + (p.Length > 1 ? p.Substring(1).ToLowerInvariant() : string.Empty);
+            }
+            return string.Join(' ', parts);
         }
 
         private IUserEmailStore<AppUser> GetEmailStore()
