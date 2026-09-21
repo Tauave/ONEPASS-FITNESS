@@ -66,8 +66,6 @@ namespace ONEPASS_FITNESS.Controllers
 
             for (var week = 0; week < model.RepeatWeeks; week++)
             {
-                // Convert each week's local time separately so a daylight saving
-                // change does not shift the time of day.
                 var startUtc = ToUtc(model.StartTime.AddDays(7 * week));
 
                 if (startUtc <= now)
@@ -207,7 +205,6 @@ namespace ONEPASS_FITNESS.Controllers
 
             if (_tz.IsInvalidTime(unspecified))
             {
-                // Clocks jumped forward over this local time, shift past the gap.
                 unspecified = unspecified.AddHours(1);
             }
 
