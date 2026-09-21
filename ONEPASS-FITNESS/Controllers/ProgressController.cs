@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Data;
@@ -7,6 +8,7 @@ using System.Security.Claims;
 
 namespace ONEPASS_FITNESS.Controllers
 {
+    [Authorize(Policy = "MemberOnly")]
     public class ProgressController : Controller
     {
         private readonly ApplicationDbContext _context;

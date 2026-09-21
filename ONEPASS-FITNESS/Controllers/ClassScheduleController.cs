@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace ONEPASS_FITNESS.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "MemberOnly")]
     public class ClassScheduleController : Controller
     {
         private readonly ApplicationDbContext _db;

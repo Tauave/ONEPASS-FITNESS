@@ -33,7 +33,12 @@ namespace ONEPASS_FITNESS
             builder.Services.AddSingleton(TimeZoneInfo.FindSystemTimeZoneById(tzId));
 
             builder.Services.AddAuthorization(o =>
-                o.AddPolicy("AdminOnly", p => p.RequireRole("Admin")));
+            {
+                o.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+                o.AddPolicy("MemberOnly", p => p
+                    .RequireAuthenticatedUser()
+                    .RequireAssertion(c => !c.User.IsInRole("Admin")));
+            });
 
             builder.Services.AddRazorPages(options =>
             {
