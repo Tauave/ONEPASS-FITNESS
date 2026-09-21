@@ -7,7 +7,7 @@ namespace ONEPASS_FITNESS
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +26,20 @@ namespace ONEPASS_FITNESS
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            builder.Services.AddSingleton<Services.GymTimeZoneProvider>();
-
             builder.Services.AddControllersWithViews();
-            builder.Services.AddRazorPages();
+
+            // Register a TimeZoneInfo for class times (configure Gym:TimeZone in appsettings or user-secrets)
+            var tzId = builder.Configuration["Gym:TimeZone"] ?? "Pacific/Auckland";
+            builder.Services.AddSingleton(TimeZoneInfo.FindSystemTimeZoneById(tzId));
+
+            builder.Services.AddAuthorization(o =>
+                o.AddPolicy("AdminOnly", p => p.RequireRole("Admin")));
+
+            builder.Services.AddRazorPages(options =>
+            {
+                // Protect the admin folder with the AdminOnly policy
+                options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
+            });
 
             var app = builder.Build();
 
@@ -53,14 +63,38 @@ namespace ONEPASS_FITNESS
 
             app.MapRazorPages();
 
-            if (app.Environment.IsDevelopment())
+            // Seed admin user/roles at startup (reads credentials from configuration / user-secrets)
+            using (var scope = app.Services.CreateScope())
             {
-                using var scope = app.Services.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var services = scope.ServiceProvider;
+                var context = services.GetRequiredService<ApplicationDbContext>();
+                var userManager = services.GetRequiredService<UserManager<AppUser>>();
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-                DbInitializer.Initialize(context, userManager, roleManager);
+                // Apply any pending EF migrations so new schema is available on first run
+                try
+                {
+                    context.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "Database migrate failed at startup");
+                }
+
+                try
+                {
+                    DbInitializer.Initialize(context, userManager, roleManager);
+                }
+                catch { /* swallow - keep startup resilient */ }
+
+                try
+                {
+                    var config = services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
+                    await DbSeeder.SeedAdminAsync(services, config);
+                }
+                catch { /* swallow - seeding optional */ }
             }
 
             app.Run();

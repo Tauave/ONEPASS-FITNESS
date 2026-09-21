@@ -39,13 +39,6 @@ namespace ONEPASS_FITNESS.Data
                 .HasIndex(b => new { b.ClassSessionId, b.UserId })
                 .IsUnique();
 
-            // Optionally seed a couple of upcoming sessions for testing (times in UTC)
-            var now = DateTime.UtcNow.Date;
-            modelBuilder.Entity<Models.ClassSession>().HasData(
-                new Models.ClassSession { Id = 1, ClassTypeId = 1, StartTime = DateTime.SpecifyKind(now.AddDays(1).AddHours(9), DateTimeKind.Utc), Capacity = 12 },
-                new Models.ClassSession { Id = 2, ClassTypeId = 2, StartTime = DateTime.SpecifyKind(now.AddDays(1).AddHours(18), DateTimeKind.Utc), Capacity = 15 },
-                new Models.ClassSession { Id = 3, ClassTypeId = 3, StartTime = DateTime.SpecifyKind(now.AddDays(2).AddHours(7), DateTimeKind.Utc), Capacity = 10 }
-            );
         }
     }
 }

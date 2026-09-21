@@ -1,9 +1,11 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Models;
 using ONEPASS_FITNESS.Data;
 
+[Authorize(Roles = "Admin")]
 public class ClassesController : Controller
 {
     private readonly ApplicationDbContext _context;

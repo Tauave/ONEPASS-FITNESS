@@ -1,8 +1,7 @@
-@using ONEPASS_FITNESS.Services
 @model ONEPASS_FITNESS.Models.ClassSession
 @{
     ViewData["Title"] = "Delete session";
-    var tz = (GymTimeZoneProvider)ViewData["TimeZone"]!;
+    var tz = (TimeZoneInfo)ViewData["TimeZone"]!;
     var bookingCount = Model.Bookings?.Count ?? 0;
 }
 
@@ -13,8 +12,8 @@
 <dl class="row">
     <dt class="col-sm-3">Class</dt>
     <dd class="col-sm-9">@Model.ClassType?.Name</dd>
-    <dt class="col-sm-3">Start (@tz.TimeZone.Id)</dt>
-    <dd class="col-sm-9">@tz.ToLocal(Model.StartTime).ToString("ddd, dd MMM yyyy HH:mm")</dd>
+    <dt class="col-sm-3">Start (@tz.Id)</dt>
+    <dd class="col-sm-9">@TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(Model.StartTime, DateTimeKind.Utc), tz).ToString("ddd, dd MMM yyyy HH:mm")</dd>
     <dt class="col-sm-3">Capacity</dt>
     <dd class="col-sm-9">@Model.Capacity</dd>
     <dt class="col-sm-3">Bookings</dt>

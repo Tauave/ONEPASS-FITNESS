@@ -1,30 +1,35 @@
 @model List<ONEPASS_FITNESS.Models.ClassSession>
+@inject TimeZoneInfo Tz
 @{
-    ViewData["Title"] = "Class Schedule";
+    ViewData["Title"] = "Book a class";
     var classTypes = (List<ONEPASS_FITNESS.Models.ClassType>)ViewData["ClassTypes"] ?? new();
     var selected = (int?)ViewData["SelectedClassTypeId"];
     var bookedIds = (HashSet<int>?)ViewData["BookedSessionIds"] ?? new HashSet<int>();
 }
 
-<h1>Class schedule</h1>
+<h1>Book a class</h1>
 
-<div class="mb-3 d-flex align-items-center gap-3">
+<div class="mb-4">
     <form asp-action="Index" asp-controller="ClassSchedule" method="get" class="m-0">
-        <label for="classTypeId" class="form-label visually-hidden">Class type</label>
+        <label for="classTypeId" class="form-label">Choose a class</label>
         <select id="classTypeId" name="classTypeId" class="form-select" onchange="this.form.submit()">
-            <option value="" selected="@(selected == null ? "selected" : null)">All</option>
+            <option value="">-- Select a class --</option>
             @foreach (var ct in classTypes)
             {
                 <option value="@ct.Id" selected="@(selected == ct.Id ? "selected" : null)">@ct.Name</option>
             }
         </select>
     </form>
-
-    <div>
-        <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index", "ClassSchedule")">Show all</a>
-    </div>
 </div>
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
 
 @if (selected != null)
 {
@@ -42,9 +47,10 @@
                 {
                     var spotsLeft = s.Capacity - (s.Bookings?.Count ?? 0);
                     <div class="list-group-item d-flex justify-content-between align-items-center">
+                        @{ var startLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(s.StartTime, DateTimeKind.Utc), Tz); }
                         <div>
-                            <div><strong>@s.StartTime.ToLocalTime().ToString("dddd, MMM d yyyy")</strong></div>
-                            <div class="text-muted">@s.StartTime.ToLocalTime().ToString("HH:mm") — @spotsLeft spot(s) left</div>
+                            <div><strong>@startLocal.ToString("dddd, MMM d yyyy")</strong></div>
+                            <div class="text-muted">@startLocal.ToString("HH:mm") — @spotsLeft spot(s) left</div>
                         </div>
                         <div>
                             @if (bookedIds.Contains(s.Id))
@@ -69,103 +75,4 @@
             </div>
         }
     </div>
-}
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-
-@{
-    var upcoming = (List<ONEPASS_FITNESS.Models.Booking>?)ViewData["UpcomingBookings"] ?? new List<ONEPASS_FITNESS.Models.Booking>();
-}
-
-@if (upcoming.Any())
-{
-    <div class="card mb-4">
-        <div class="card-header">Your upcoming bookings</div>
-        <div class="card-body">
-            <ul class="list-group list-group-flush">
-                @foreach (var b in upcoming)
-                {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>@b.ClassSession.ClassType?.Name</strong>
-                            <div class="text-muted">@b.ClassSession.StartTime.ToLocalTime().ToString("dddd, MMM d yyyy HH:mm")</div>
-                        </div>
-                        <div>
-                            <form asp-action="Cancel" asp-controller="ClassSchedule" method="post" class="d-inline">
-                                <input type="hidden" name="bookingId" value="@b.Id" />
-                                <input type="hidden" name="classTypeId" value="@selected" />
-                                <button type="submit" class="btn btn-sm btn-warning">Cancel</button>
-                            </form>
-                        </div>
-                    </li>
-                }
-            </ul>
-        </div>
-    </div>
-}
-
-@foreach (var group in Model.GroupBy(s => s.StartTime.Date))
-{
-    <h4>@group.Key.ToString("dddd, MMM d")</h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Class</th>
-                <th>Time</th>
-                <th>Spots</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var s in group)
-            {
-                var spotsLeft = s.Capacity - (s.Bookings?.Count ?? 0);
-                <tr>
-                    <td>@s.ClassType?.Name</td>
-                    <td>@s.StartTime.ToLocalTime().ToString("HH:mm")</td>
-                    <td>@spotsLeft</td>
-                    <td>
-                        @if (bookedIds.Contains(s.Id))
-                        {
-                            var booking = s.Bookings.FirstOrDefault(b => b.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
-                            if (booking != null)
-                            {
-                                <form asp-action="Cancel" asp-controller="ClassSchedule" method="post" class="d-inline">
-                                    <input type="hidden" name="bookingId" value="@booking.Id" />
-                                    <input type="hidden" name="classTypeId" value="@selected" />
-                                    <button type="submit" class="btn btn-warning btn-sm">Cancel</button>
-                                </form>
-                            }
-                            else
-                            {
-                                <span class="badge bg-success">Booked</span>
-                            }
-                        }
-                        else
-                        {
-                            if (spotsLeft <= 0)
-                            {
-                                <span class="text-muted">Full</span>
-                            }
-                            else
-                            {
-                                <form asp-action="Book" asp-controller="ClassSchedule" method="post" class="d-inline">
-                                    <input type="hidden" name="sessionId" value="@s.Id" />
-                                    <input type="hidden" name="classTypeId" value="@selected" />
-                                    <button type="submit" class="btn btn-primary btn-sm">Book</button>
-                                </form>
-                            }
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
 }

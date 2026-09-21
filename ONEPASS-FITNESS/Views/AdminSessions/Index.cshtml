@@ -1,8 +1,7 @@
-@using ONEPASS_FITNESS.Services
 @model List<ONEPASS_FITNESS.Models.ClassSession>
 @{
     ViewData["Title"] = "Sessions";
-    var tz = (GymTimeZoneProvider)ViewData["TimeZone"]!;
+    var tz = (TimeZoneInfo)ViewData["TimeZone"]!;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -29,7 +28,7 @@ else
         <thead>
             <tr>
                 <th>Class</th>
-                <th>Start (@tz.TimeZone.Id)</th>
+                <th>Start (@tz.Id)</th>
                 <th>Capacity</th>
                 <th>Booked</th>
                 <th></th>
@@ -40,7 +39,7 @@ else
             {
                 <tr>
                     <td>@s.ClassType?.Name</td>
-                    <td>@tz.ToLocal(s.StartTime).ToString("ddd, dd MMM yyyy HH:mm")</td>
+                    <td>@TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(s.StartTime, DateTimeKind.Utc), tz).ToString("ddd, dd MMM yyyy HH:mm")</td>
                     <td>@s.Capacity</td>
                     <td>@(s.Bookings?.Count ?? 0)</td>
                     <td class="text-end">

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ONEPASS_FITNESS.Data;
 
@@ -11,9 +12,11 @@ using ONEPASS_FITNESS.Data;
 namespace ONEPASS_FITNESS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260921114255_cbmodels")]
+    partial class cbmodels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -334,13 +337,9 @@ namespace ONEPASS_FITNESS.Migrations
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -352,7 +351,6 @@ namespace ONEPASS_FITNESS.Migrations
                             Id = 1,
                             Description = "High intensity interval training",
                             DurationMinutes = 45,
-                            IsActive = true,
                             Name = "HIIT"
                         },
                         new
@@ -360,7 +358,6 @@ namespace ONEPASS_FITNESS.Migrations
                             Id = 2,
                             Description = "Vinyasa flow and stretching",
                             DurationMinutes = 60,
-                            IsActive = true,
                             Name = "Yoga"
                         },
                         new
@@ -368,7 +365,6 @@ namespace ONEPASS_FITNESS.Migrations
                             Id = 3,
                             Description = "Mat Pilates core and mobility",
                             DurationMinutes = 50,
-                            IsActive = true,
                             Name = "Pilates"
                         });
                 });

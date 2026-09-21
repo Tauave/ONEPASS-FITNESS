@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Data;
@@ -6,15 +7,18 @@ using System.Security.Claims;
 
 namespace ONEPASS_FITNESS.Controllers
 {
+    [Authorize]
     public class ClassScheduleController : Controller
     {
         private readonly ApplicationDbContext _db;
         private readonly ILogger<ClassScheduleController> _logger;
+        private readonly TimeZoneInfo _tz;
 
-        public ClassScheduleController(ApplicationDbContext db, ILogger<ClassScheduleController> logger)
+        public ClassScheduleController(ApplicationDbContext db, ILogger<ClassScheduleController> logger, TimeZoneInfo tz)
         {
             _db = db;
             _logger = logger;
+            _tz = tz;
         }
 
         // GET: /ClassSchedule?classTypeId=1
@@ -30,7 +34,7 @@ namespace ONEPASS_FITNESS.Controllers
             var query = _db.ClassSessions
                 .Include(s => s.ClassType)
                 .Include(s => s.Bookings)
-                .Where(s => s.StartTime > DateTime.UtcNow);
+                .Where(s => s.StartTime > DateTime.UtcNow && s.ClassType.IsActive);
 
             if (classTypeId != null)
                 query = query.Where(s => s.ClassTypeId == classTypeId.Value);
@@ -42,7 +46,18 @@ namespace ONEPASS_FITNESS.Controllers
                 .Select(s => s.Id)
                 .ToHashSet();
 
-            // upcoming bookings for the current user 
+            ViewData["ClassTypes"] = classTypes;
+            ViewData["SelectedClassTypeId"] = classTypeId;
+            ViewData["BookedSessionIds"] = bookedSessionIds;
+
+            return View(sessions);
+        }
+
+        // GET: /ClassSchedule/MySchedule
+        public async Task<IActionResult> MySchedule()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
             var upcomingBookings = await _db.Bookings
                 .Include(b => b.ClassSession)
                     .ThenInclude(s => s.ClassType)
@@ -50,13 +65,21 @@ namespace ONEPASS_FITNESS.Controllers
                 .OrderBy(b => b.ClassSession.StartTime)
                 .ToListAsync();
 
-            ViewData["UpcomingBookings"] = upcomingBookings;
+            var pastBookings = await _db.Bookings
+                .Include(b => b.ClassSession)
+                    .ThenInclude(s => s.ClassType)
+                .Where(b => b.UserId == userId && b.ClassSession.StartTime <= DateTime.UtcNow)
+                .OrderByDescending(b => b.ClassSession.StartTime)
+                .ToListAsync();
 
-            ViewData["ClassTypes"] = classTypes;
-            ViewData["SelectedClassTypeId"] = classTypeId;
-            ViewData["BookedSessionIds"] = bookedSessionIds;
+            var vm = new MyScheduleViewModel
+            {
+                UpcomingBookings = upcomingBookings,
+                PastBookings = pastBookings,
+                TimeZone = _tz
+            };
 
-            return View(sessions);
+            return View(vm);
         }
 
         [HttpPost]
@@ -102,12 +125,12 @@ namespace ONEPASS_FITNESS.Controllers
                 TempData["Error"] = "Could not complete booking. The class may be full or you already booked.";
             }
 
-            return RedirectToAction(nameof(Index), new { classTypeId });
+            return RedirectToAction(nameof(MySchedule));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Cancel(int bookingId, int? classTypeId)
+        public async Task<IActionResult> Cancel(int bookingId)
         {
             if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -119,20 +142,28 @@ namespace ONEPASS_FITNESS.Controllers
             if (booking == null)
             {
                 TempData["Error"] = "Booking not found.";
-                return RedirectToAction(nameof(Index), new { classTypeId });
+                return RedirectToAction(nameof(MySchedule));
             }
 
-            // Optionally block cancellations within 2 hours of start time
+            // Block cancellations within 2 hours of start time
             if (booking.ClassSession.StartTime <= DateTime.UtcNow.AddHours(2))
             {
                 TempData["Error"] = "Cancellations are blocked within 2 hours of the session start.";
-                return RedirectToAction(nameof(Index), new { classTypeId });
+                return RedirectToAction(nameof(MySchedule));
             }
 
             _db.Bookings.Remove(booking);
             await _db.SaveChangesAsync();
             TempData["Success"] = "Booking cancelled.";
-            return RedirectToAction(nameof(Index), new { classTypeId });
+            return RedirectToAction(nameof(MySchedule));
         }
     }
+
+    public class MyScheduleViewModel
+    {
+        public List<Booking> UpcomingBookings { get; set; } = new();
+        public List<Booking> PastBookings { get; set; } = new();
+        public TimeZoneInfo TimeZone { get; set; } = null!;
+    }
 }
+

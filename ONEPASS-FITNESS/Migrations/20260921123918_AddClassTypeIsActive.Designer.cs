@@ -12,7 +12,7 @@ using ONEPASS_FITNESS.Data;
 namespace ONEPASS_FITNESS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260921123624_AddClassTypeIsActive")]
+    [Migration("20260921123918_AddClassTypeIsActive")]
     partial class AddClassTypeIsActive
     {
         /// <inheritdoc />
@@ -320,29 +320,6 @@ namespace ONEPASS_FITNESS.Migrations
                     b.HasIndex("ClassTypeId");
 
                     b.ToTable("ClassSessions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Capacity = 12,
-                            ClassTypeId = 1,
-                            StartTime = new DateTime(2026, 9, 22, 9, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Capacity = 15,
-                            ClassTypeId = 2,
-                            StartTime = new DateTime(2026, 9, 22, 18, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Capacity = 10,
-                            ClassTypeId = 3,
-                            StartTime = new DateTime(2026, 9, 23, 7, 0, 0, 0, DateTimeKind.Utc)
-                        });
                 });
 
             modelBuilder.Entity("ONEPASS_FITNESS.Models.ClassType", b =>

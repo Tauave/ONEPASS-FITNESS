@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Data;
 using ONEPASS_FITNESS.Models;
-using ONEPASS_FITNESS.Services;
 
 namespace ONEPASS_FITNESS.Controllers
 {
@@ -12,12 +11,12 @@ namespace ONEPASS_FITNESS.Controllers
     public class AdminSessionsController : Controller
     {
         private readonly ApplicationDbContext _db;
-        private readonly GymTimeZoneProvider _timeZone;
+        private readonly TimeZoneInfo _tz;
 
-        public AdminSessionsController(ApplicationDbContext db, GymTimeZoneProvider timeZone)
+        public AdminSessionsController(ApplicationDbContext db, TimeZoneInfo tz)
         {
             _db = db;
-            _timeZone = timeZone;
+            _tz = tz;
         }
 
         // GET: /AdminSessions
@@ -29,7 +28,7 @@ namespace ONEPASS_FITNESS.Controllers
                 .OrderBy(s => s.StartTime)
                 .ToListAsync();
 
-            ViewData["TimeZone"] = _timeZone;
+            ViewData["TimeZone"] = _tz;
             return View(sessions);
         }
 
@@ -38,7 +37,7 @@ namespace ONEPASS_FITNESS.Controllers
         {
             var model = new ClassSessionViewModel
             {
-                StartTime = _timeZone.ToLocal(DateTime.UtcNow).Date.AddDays(1).AddHours(9)
+                StartTime = ToLocal(DateTime.UtcNow).Date.AddDays(1).AddHours(9)
             };
 
             await PopulateClassTypesAsync(model.ClassTypeId);
@@ -69,7 +68,7 @@ namespace ONEPASS_FITNESS.Controllers
             {
                 // Convert each week's local time separately so a daylight saving
                 // change does not shift the time of day.
-                var startUtc = _timeZone.ToUtc(model.StartTime.AddDays(7 * week));
+                var startUtc = ToUtc(model.StartTime.AddDays(7 * week));
 
                 if (startUtc <= now)
                 {
@@ -116,7 +115,7 @@ namespace ONEPASS_FITNESS.Controllers
             {
                 Id = session.Id,
                 ClassTypeId = session.ClassTypeId,
-                StartTime = _timeZone.ToLocal(session.StartTime),
+                StartTime = ToLocal(session.StartTime),
                 Capacity = session.Capacity
             };
 
@@ -155,7 +154,7 @@ namespace ONEPASS_FITNESS.Controllers
             }
 
             session.ClassTypeId = model.ClassTypeId;
-            session.StartTime = _timeZone.ToUtc(model.StartTime);
+            session.StartTime = ToUtc(model.StartTime);
             session.Capacity = model.Capacity;
 
             await _db.SaveChangesAsync();
@@ -176,7 +175,7 @@ namespace ONEPASS_FITNESS.Controllers
                 return NotFound();
             }
 
-            ViewData["TimeZone"] = _timeZone;
+            ViewData["TimeZone"] = _tz;
             return View(session);
         }
 
@@ -201,6 +200,22 @@ namespace ONEPASS_FITNESS.Controllers
             TempData["Success"] = "Session deleted.";
             return RedirectToAction(nameof(Index));
         }
+
+        private DateTime ToUtc(DateTime localTime)
+        {
+            var unspecified = DateTime.SpecifyKind(localTime, DateTimeKind.Unspecified);
+
+            if (_tz.IsInvalidTime(unspecified))
+            {
+                // Clocks jumped forward over this local time, shift past the gap.
+                unspecified = unspecified.AddHours(1);
+            }
+
+            return TimeZoneInfo.ConvertTimeToUtc(unspecified, _tz);
+        }
+
+        private DateTime ToLocal(DateTime utcTime) =>
+            TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utcTime, DateTimeKind.Utc), _tz);
 
         private async Task PopulateClassTypesAsync(int selectedId, int? alwaysIncludeId = null)
         {
