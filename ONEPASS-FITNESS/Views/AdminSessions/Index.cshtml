@@ -1,0 +1,48 @@
+@model List<ONEPASS_FITNESS.Models.ClassSession>
+@inject TimeZoneInfo Tz
+@{
+    ViewData["Title"] = "Manage Sessions";
+}
+
+<h1>Manage sessions</h1>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">New session</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Class</th>
+            <th>Start time</th>
+            <th>Capacity</th>
+            <th>Booked</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            var booked = s.Bookings?.Count ?? 0;
+            var startLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(s.StartTime, DateTimeKind.Utc), Tz);
+            <tr>
+                <td>@s.ClassType?.Name</td>
+                <td>@startLocal.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>@s.Capacity</td>
+                <td>@booked</td>
+                <td>
+                    <a class="btn btn-sm btn-secondary" asp-action="Edit" asp-route-id="@s.Id">Edit</a>
+                    <form asp-action="Delete" method="post" class="d-inline ms-1">
+                        <input type="hidden" name="id" value="@s.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

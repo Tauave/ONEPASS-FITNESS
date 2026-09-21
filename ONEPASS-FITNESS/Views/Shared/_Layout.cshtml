@@ -28,14 +28,20 @@
                                 <a class="nav-link text-dark" asp-controller="Progress" asp-action="Index">Progress</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="ClassBookings" asp-action="Create">Book a Class</a>
+                                <a class="nav-link text-dark" asp-controller="ClassSchedule" asp-action="Index">Book a Class</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="ClassSchedule" asp-action="MySchedule">Schedule</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Personalinfo" asp-action="Index">Account</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Classes" asp-action="Index">Schedule</a>
-                            </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="AdminSessions" asp-action="Index">Admin</a>
+                                </li>
+                            }
                         }
                     </ul>
                     <partial name="_LoginPartial" />

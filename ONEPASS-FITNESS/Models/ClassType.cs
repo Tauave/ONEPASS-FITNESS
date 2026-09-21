@@ -13,5 +13,7 @@ namespace ONEPASS_FITNESS.Models
 
         [Range(1, 1440)]
         public int DurationMinutes { get; set; }
+
+        public bool IsActive { get; set; } = true;
     }
 }
