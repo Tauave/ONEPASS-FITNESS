@@ -50,6 +50,13 @@ namespace ONEPASS_FITNESS.Data
                     return;
                 }
             }
+            else if (!await userManager.CheckPasswordAsync(admin, password))
+            {
+                var token = await userManager.GeneratePasswordResetTokenAsync(admin);
+                var reset = await userManager.ResetPasswordAsync(admin, token, password);
+                if (!reset.Succeeded)
+                    logger.LogWarning("Failed to reset admin password: {Errors}", string.Join(", ", reset.Errors.Select(e => e.Description)));
+            }
 
             if (!await userManager.IsInRoleAsync(admin, "Admin"))
             {
