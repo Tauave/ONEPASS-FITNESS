@@ -1,48 +1,53 @@
 @model List<ONEPASS_FITNESS.Models.ClassSession>
-@inject TimeZoneInfo Tz
 @{
-    ViewData["Title"] = "Manage Sessions";
+    ViewData["Title"] = "Sessions";
+    var tz = (TimeZoneInfo)ViewData["TimeZone"]!;
 }
 
-<h1>Manage sessions</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="m-0">Sessions</h1>
+    <a class="btn btn-primary" asp-action="Create">Add session</a>
+</div>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
 @if (TempData["Error"] != null)
 {
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
-<p>
-    <a class="btn btn-primary" asp-action="Create">New session</a>
-</p>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Class</th>
-            <th>Start time</th>
-            <th>Capacity</th>
-            <th>Booked</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var s in Model)
-        {
-            var booked = s.Bookings?.Count ?? 0;
-            var startLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(s.StartTime, DateTimeKind.Utc), Tz);
+@if (!Model.Any())
+{
+    <div class="text-muted">No sessions yet.</div>
+}
+else
+{
+    <table class="table align-middle">
+        <thead>
             <tr>
-                <td>@s.ClassType?.Name</td>
-                <td>@startLocal.ToString("yyyy-MM-dd HH:mm")</td>
-                <td>@s.Capacity</td>
-                <td>@booked</td>
-                <td>
-                    <a class="btn btn-sm btn-secondary" asp-action="Edit" asp-route-id="@s.Id">Edit</a>
-                    <form asp-action="Delete" method="post" class="d-inline ms-1">
-                        <input type="hidden" name="id" value="@s.Id" />
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </td>
+                <th>Class</th>
+                <th>Start (@tz.Id)</th>
+                <th>Capacity</th>
+                <th>Booked</th>
+                <th></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td>@s.ClassType?.Name</td>
+                    <td>@TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(s.StartTime, DateTimeKind.Utc), tz).ToString("ddd, dd MMM yyyy HH:mm")</td>
+                    <td>@s.Capacity</td>
+                    <td>@(s.Bookings?.Count ?? 0)</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@s.Id">Edit</a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@s.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

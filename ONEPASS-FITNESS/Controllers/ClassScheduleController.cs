@@ -28,6 +28,7 @@ namespace ONEPASS_FITNESS.Controllers
 
             var classTypes = await _db.ClassTypes
                 .Where(ct => ct.IsActive)
+                .OrderBy(ct => ct.Name)
                 .ToListAsync();
 
             var query = _db.ClassSessions

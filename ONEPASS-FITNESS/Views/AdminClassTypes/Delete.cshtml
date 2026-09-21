@@ -1,0 +1,34 @@
+@model ONEPASS_FITNESS.Models.ClassTypeListItemViewModel
+@{
+    ViewData["Title"] = "Delete class";
+}
+
+<h1>Delete class</h1>
+
+@if (Model.TotalSessionCount > 0)
+{
+    <div class="alert alert-warning">
+        <strong>@Model.Name</strong> has @Model.TotalSessionCount session(s) and cannot be deleted.
+        Deactivate it instead: it will disappear from the booking dropdowns while its sessions and bookings stay intact.
+    </div>
+
+    <form asp-action="Toggle" asp-route-id="@Model.Id" method="post" class="d-inline">
+        <button type="submit" class="btn btn-warning" @(Model.IsActive ? "" : "disabled")>Deactivate</button>
+    </form>
+    <a class="btn btn-link" asp-action="Index">Back to list</a>
+}
+else
+{
+    <p>Are you sure you want to delete <strong>@Model.Name</strong>?</p>
+    <dl class="row">
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+        <dt class="col-sm-3">Duration</dt>
+        <dd class="col-sm-9">@Model.DurationMinutes min</dd>
+    </dl>
+
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
+        <button type="submit" class="btn btn-danger">Delete</button>
+    </form>
+    <a class="btn btn-link" asp-action="Index">Cancel</a>
+}

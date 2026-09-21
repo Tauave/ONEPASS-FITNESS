@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ONEPASS_FITNESS.Data;
 using ONEPASS_FITNESS.Models;
-using System.ComponentModel.DataAnnotations;
 
 namespace ONEPASS_FITNESS.Controllers
 {
@@ -11,265 +10,198 @@ namespace ONEPASS_FITNESS.Controllers
     public class AdminClassTypesController : Controller
     {
         private readonly ApplicationDbContext _db;
-        private readonly ILogger<AdminClassTypesController> _logger;
 
-        public AdminClassTypesController(ApplicationDbContext db, ILogger<AdminClassTypesController> logger)
+        public AdminClassTypesController(ApplicationDbContext db)
         {
             _db = db;
-            _logger = logger;
         }
 
-        // GET: AdminClassTypes
+        // GET: /AdminClassTypes
         public async Task<IActionResult> Index()
         {
-            var classTypes = await _db.ClassTypes
-                .AsNoTracking()
-                .ToListAsync();
+            var now = DateTime.UtcNow;
 
-            var vm = new List<ClassTypeIndexViewModel>();
-            foreach (var ct in classTypes)
-            {
-                var upcomingSessionCount = await _db.ClassSessions
-                    .Where(s => s.ClassTypeId == ct.Id && s.StartTime > DateTime.UtcNow)
-                    .CountAsync();
-
-                vm.Add(new ClassTypeIndexViewModel
+            var items = await _db.ClassTypes
+                .OrderBy(ct => ct.Name)
+                .Select(ct => new ClassTypeListItemViewModel
                 {
                     Id = ct.Id,
                     Name = ct.Name,
                     Description = ct.Description,
                     DurationMinutes = ct.DurationMinutes,
                     IsActive = ct.IsActive,
-                    UpcomingSessionCount = upcomingSessionCount
-                });
-            }
+                    UpcomingSessionCount = _db.ClassSessions.Count(s => s.ClassTypeId == ct.Id && s.StartTime > now),
+                    TotalSessionCount = _db.ClassSessions.Count(s => s.ClassTypeId == ct.Id)
+                })
+                .ToListAsync();
 
-            return View(vm);
+            return View(items);
         }
 
-        // GET: AdminClassTypes/Create
+        // GET: /AdminClassTypes/Create
         public IActionResult Create()
         {
-            return View("Form", new ClassTypeFormViewModel());
+            return View("Create", new ClassTypeViewModel());
         }
 
-        // POST: AdminClassTypes/Create
+        // POST: /AdminClassTypes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ClassTypeFormViewModel vm)
+        public async Task<IActionResult> Create(ClassTypeViewModel model)
         {
-            if (!ValidateClassTypeForm(vm))
+            await ValidateNameIsUniqueAsync(model);
+
+            if (!ModelState.IsValid)
             {
-                return View("Form", vm);
+                return View(model);
             }
 
-            var classType = new ClassType
+            _db.ClassTypes.Add(new ClassType
             {
-                Name = vm.Name!.Trim(),
-                Description = vm.Description?.Trim(),
-                DurationMinutes = vm.DurationMinutes,
+                Name = model.Name.Trim(),
+                Description = model.Description?.Trim() ?? string.Empty,
+                DurationMinutes = model.DurationMinutes,
                 IsActive = true
-            };
+            });
 
-            _db.ClassTypes.Add(classType);
-            try
-            {
-                await _db.SaveChangesAsync();
-                TempData["Success"] = "Class type created successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating class type");
-                TempData["Error"] = "Error creating class type.";
-                return View("Form", vm);
-            }
+            await _db.SaveChangesAsync();
+            TempData["Success"] = $"Class \"{model.Name.Trim()}\" was created.";
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: AdminClassTypes/Edit/5
+        // GET: /AdminClassTypes/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var classType = await _db.ClassTypes.FindAsync(id);
             if (classType == null)
+            {
                 return NotFound();
+            }
 
-            var vm = new ClassTypeFormViewModel
+            return View(new ClassTypeViewModel
             {
                 Id = classType.Id,
                 Name = classType.Name,
                 Description = classType.Description,
                 DurationMinutes = classType.DurationMinutes
-            };
-
-            return View("Form", vm);
+            });
         }
 
-        // POST: AdminClassTypes/Edit/5
+        // POST: /AdminClassTypes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, ClassTypeFormViewModel vm)
+        public async Task<IActionResult> Edit(int id, ClassTypeViewModel model)
         {
-            if (vm.Id != id)
-                return BadRequest();
-
-            if (!ValidateClassTypeForm(vm, excludeId: id))
+            if (id != model.Id)
             {
-                return View("Form", vm);
+                return NotFound();
             }
 
             var classType = await _db.ClassTypes.FindAsync(id);
             if (classType == null)
+            {
                 return NotFound();
-
-            classType.Name = vm.Name!.Trim();
-            classType.Description = vm.Description?.Trim();
-            classType.DurationMinutes = vm.DurationMinutes;
-
-            try
-            {
-                await _db.SaveChangesAsync();
-                TempData["Success"] = "Class type updated successfully.";
-                return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
+
+            await ValidateNameIsUniqueAsync(model);
+
+            if (!ModelState.IsValid)
             {
-                _logger.LogError(ex, "Error updating class type");
-                TempData["Error"] = "Error updating class type.";
-                return View("Form", vm);
+                return View(model);
             }
+
+            classType.Name = model.Name.Trim();
+            classType.Description = model.Description?.Trim() ?? string.Empty;
+            classType.DurationMinutes = model.DurationMinutes;
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = $"Class \"{classType.Name}\" was updated.";
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: AdminClassTypes/Delete/5
+        // GET: /AdminClassTypes/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var classType = await _db.ClassTypes
-                .Include(ct => ct.ClassSessions)
-                .FirstOrDefaultAsync(ct => ct.Id == id);
-
+            var classType = await _db.ClassTypes.FindAsync(id);
             if (classType == null)
-                return NotFound();
-
-            if (classType.ClassSessions.Any())
             {
-                TempData["Error"] = "Cannot delete a class type that has sessions. Please deactivate it instead.";
+                return NotFound();
+            }
+
+            var now = DateTime.UtcNow;
+
+            return View(new ClassTypeListItemViewModel
+            {
+                Id = classType.Id,
+                Name = classType.Name,
+                Description = classType.Description,
+                DurationMinutes = classType.DurationMinutes,
+                IsActive = classType.IsActive,
+                UpcomingSessionCount = await _db.ClassSessions.CountAsync(s => s.ClassTypeId == id && s.StartTime > now),
+                TotalSessionCount = await _db.ClassSessions.CountAsync(s => s.ClassTypeId == id)
+            });
+        }
+
+        // POST: /AdminClassTypes/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var classType = await _db.ClassTypes.FindAsync(id);
+            if (classType == null)
+            {
+                return NotFound();
+            }
+
+            if (await _db.ClassSessions.AnyAsync(s => s.ClassTypeId == id))
+            {
+                TempData["Error"] = $"\"{classType.Name}\" has sessions, so it cannot be deleted. Deactivate it instead to hide it from new bookings.";
                 return RedirectToAction(nameof(Index));
             }
 
             _db.ClassTypes.Remove(classType);
-            try
-            {
-                await _db.SaveChangesAsync();
-                TempData["Success"] = "Class type deleted successfully.";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting class type");
-                TempData["Error"] = "Error deleting class type.";
-            }
-
+            await _db.SaveChangesAsync();
+            TempData["Success"] = $"Class \"{classType.Name}\" was deleted.";
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: AdminClassTypes/Toggle/5
+        // POST: /AdminClassTypes/Toggle/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Toggle(int id)
         {
-            var classType = await _db.ClassTypes
-                .Include(ct => ct.ClassSessions)
-                .FirstOrDefaultAsync(ct => ct.Id == id);
-
+            var classType = await _db.ClassTypes.FindAsync(id);
             if (classType == null)
-                return NotFound();
-
-            // Warn if deactivating with upcoming sessions
-            if (classType.IsActive && classType.ClassSessions.Any(s => s.StartTime > DateTime.UtcNow))
             {
-                TempData["Warning"] = $"Deactivating this class type. It still has {classType.ClassSessions.Count(s => s.StartTime > DateTime.UtcNow)} upcoming session(s). Existing bookings will remain.";
+                return NotFound();
             }
 
             classType.IsActive = !classType.IsActive;
-            try
-            {
-                await _db.SaveChangesAsync();
-                TempData["Success"] = classType.IsActive ? "Class type reactivated." : "Class type deactivated.";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error toggling class type");
-                TempData["Error"] = "Error updating class type.";
-            }
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = classType.IsActive
+                ? $"\"{classType.Name}\" is now active and bookable."
+                : $"\"{classType.Name}\" is now inactive. Existing sessions and bookings are unchanged.";
 
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ValidateClassTypeForm(ClassTypeFormViewModel vm, int? excludeId = null)
+        private async Task ValidateNameIsUniqueAsync(ClassTypeViewModel model)
         {
-            var errors = new List<string>();
-
-            // Name validation
-            if (string.IsNullOrWhiteSpace(vm.Name))
+            if (string.IsNullOrWhiteSpace(model.Name))
             {
-                errors.Add("Name is required.");
-            }
-            else if (vm.Name.Length > 50)
-            {
-                errors.Add("Name must not exceed 50 characters.");
-            }
-            else
-            {
-                // Check uniqueness (case-insensitive)
-                var exists = _db.ClassTypes.AsNoTracking()
-                    .Where(ct => ct.Name.ToLower() == vm.Name.ToLower())
-                    .Where(ct => excludeId == null || ct.Id != excludeId)
-                    .Any();
-
-                if (exists)
-                {
-                    errors.Add("A class type with this name already exists.");
-                }
+                return;
             }
 
-            // Duration validation
-            if (vm.DurationMinutes < 15 || vm.DurationMinutes > 180)
-            {
-                errors.Add("Duration must be between 15 and 180 minutes.");
-            }
+            var name = model.Name.Trim();
 
-            if (errors.Any())
-            {
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError("", error);
-                }
-                return false;
-            }
+            var duplicate = await _db.ClassTypes
+                .AnyAsync(ct => ct.Id != model.Id && ct.Name.ToLower() == name.ToLower());
 
-            return true;
+            if (duplicate)
+            {
+                ModelState.AddModelError(nameof(model.Name), "A class with that name already exists.");
+            }
         }
-    }
-
-    public class ClassTypeFormViewModel
-    {
-        public int Id { get; set; }
-
-        [Required(ErrorMessage = "Name is required.")]
-        [StringLength(50, ErrorMessage = "Name must not exceed 50 characters.")]
-        public string? Name { get; set; }
-
-        public string? Description { get; set; }
-
-        [Range(15, 180, ErrorMessage = "Duration must be between 15 and 180 minutes.")]
-        public int DurationMinutes { get; set; } = 45;
-    }
-
-    public class ClassTypeIndexViewModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public int DurationMinutes { get; set; }
-        public bool IsActive { get; set; }
-        public int UpcomingSessionCount { get; set; }
     }
 }

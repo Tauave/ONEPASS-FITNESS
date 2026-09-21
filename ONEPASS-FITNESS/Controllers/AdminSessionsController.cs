@@ -19,6 +19,7 @@ namespace ONEPASS_FITNESS.Controllers
             _tz = tz;
         }
 
+        // GET: /AdminSessions
         public async Task<IActionResult> Index()
         {
             var sessions = await _db.ClassSessions
@@ -27,140 +28,203 @@ namespace ONEPASS_FITNESS.Controllers
                 .OrderBy(s => s.StartTime)
                 .ToListAsync();
 
+            ViewData["TimeZone"] = _tz;
             return View(sessions);
         }
 
+        // GET: /AdminSessions/Create
         public async Task<IActionResult> Create()
         {
-            var vm = new SessionFormViewModel()
+            var model = new ClassSessionViewModel
             {
-                RepeatWeeks = 1
+                StartTime = ToLocal(DateTime.UtcNow).Date.AddDays(1).AddHours(9)
             };
-            await FillTypesAsync(vm);
-            vm.StartLocal = DateTime.SpecifyKind(DateTime.Now.AddDays(1).Date.AddHours(9), DateTimeKind.Unspecified);
-            return View("Form", vm);
+
+            await PopulateClassTypesAsync(model.ClassTypeId);
+            return View(model);
         }
 
+        // POST: /AdminSessions/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(SessionFormViewModel vm)
+        public async Task<IActionResult> Create(ClassSessionViewModel model)
         {
-            await FillTypesAsync(vm);
-            if (vm.StartLocal <= DateTime.Now)
-                ModelState.AddModelError(nameof(vm.StartLocal), "Start time must be in the future.");
-
-            if (vm.RepeatWeeks < 1 || vm.RepeatWeeks > 12)
-                ModelState.AddModelError(nameof(vm.RepeatWeeks), "Repeat weeks must be between 1 and 12.");
-
-            if (!ModelState.IsValid) return View("Form", vm);
-
-            // Create one session per week
-            for (int week = 0; week < vm.RepeatWeeks; week++)
+            if (!await _db.ClassTypes.AnyAsync(ct => ct.Id == model.ClassTypeId && ct.IsActive))
             {
-                // Calculate the date for this week in local time
-                var localDateForWeek = vm.StartLocal.AddDays(week * 7);
+                ModelState.AddModelError(nameof(model.ClassTypeId), "Pick an active class.");
+            }
 
-                // Skip if this week is in the past
-                if (localDateForWeek < DateTime.Now)
-                    continue;
+            if (!ModelState.IsValid)
+            {
+                await PopulateClassTypesAsync(model.ClassTypeId);
+                return View(model);
+            }
 
-                // Convert this specific local date/time to UTC
-                var startUtc = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(localDateForWeek, DateTimeKind.Unspecified), _tz);
+            var now = DateTime.UtcNow;
+            var created = 0;
+            var skipped = 0;
 
-                var s = new ClassSession
+            for (var week = 0; week < model.RepeatWeeks; week++)
+            {
+                // Convert each week's local time separately so a daylight saving
+                // change does not shift the time of day.
+                var startUtc = ToUtc(model.StartTime.AddDays(7 * week));
+
+                if (startUtc <= now)
                 {
-                    ClassTypeId = vm.ClassTypeId,
+                    skipped++;
+                    continue;
+                }
+
+                _db.ClassSessions.Add(new ClassSession
+                {
+                    ClassTypeId = model.ClassTypeId,
                     StartTime = startUtc,
-                    Capacity = vm.Capacity
-                };
-                _db.ClassSessions.Add(s);
+                    Capacity = model.Capacity
+                });
+
+                created++;
+            }
+
+            if (created == 0)
+            {
+                ModelState.AddModelError(nameof(model.StartTime), "All of those dates are in the past.");
+                await PopulateClassTypesAsync(model.ClassTypeId);
+                return View(model);
             }
 
             await _db.SaveChangesAsync();
+
+            TempData["Success"] = skipped > 0
+                ? $"Created {created} session(s). Skipped {skipped} week(s) already in the past."
+                : $"Created {created} session(s).";
+
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: /AdminSessions/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var s = await _db.ClassSessions.Include(x => x.Bookings).FirstOrDefaultAsync(x => x.Id == id);
-            if (s == null) return NotFound();
-
-            var vm = new SessionFormViewModel
+            var session = await _db.ClassSessions.FindAsync(id);
+            if (session == null)
             {
-                Id = s.Id,
-                ClassTypeId = s.ClassTypeId,
-                Capacity = s.Capacity,
-                StartLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(s.StartTime, DateTimeKind.Utc), _tz)
+                return NotFound();
+            }
+
+            var model = new ClassSessionViewModel
+            {
+                Id = session.Id,
+                ClassTypeId = session.ClassTypeId,
+                StartTime = ToLocal(session.StartTime),
+                Capacity = session.Capacity
             };
-            await FillTypesAsync(vm);
-            return View("Form", vm);
+
+            await PopulateClassTypesAsync(model.ClassTypeId);
+            return View(model);
         }
 
+        // POST: /AdminSessions/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, SessionFormViewModel vm)
+        public async Task<IActionResult> Edit(int id, ClassSessionViewModel model)
         {
-            var s = await _db.ClassSessions.Include(x => x.Bookings).FirstOrDefaultAsync(x => x.Id == id);
-            if (s == null) return NotFound();
+            if (id != model.Id)
+            {
+                return NotFound();
+            }
 
-            await FillTypesAsync(vm);
+            var session = await _db.ClassSessions.FindAsync(id);
+            if (session == null)
+            {
+                return NotFound();
+            }
 
-            if (vm.Capacity < s.Bookings.Count)
-                ModelState.AddModelError(nameof(vm.Capacity), $"{s.Bookings.Count} people are already booked in.");
+            var classTypeAllowed = await _db.ClassTypes
+                .AnyAsync(ct => ct.Id == model.ClassTypeId && (ct.IsActive || ct.Id == session.ClassTypeId));
 
-            if (!ModelState.IsValid) return View("Form", vm);
+            if (!classTypeAllowed)
+            {
+                ModelState.AddModelError(nameof(model.ClassTypeId), "Pick an active class.");
+            }
 
-            s.ClassTypeId = vm.ClassTypeId;
-            s.Capacity = vm.Capacity;
-            s.StartTime = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(vm.StartLocal, DateTimeKind.Unspecified), _tz);
+            if (!ModelState.IsValid)
+            {
+                await PopulateClassTypesAsync(model.ClassTypeId, session.ClassTypeId);
+                return View(model);
+            }
+
+            session.ClassTypeId = model.ClassTypeId;
+            session.StartTime = ToUtc(model.StartTime);
+            session.Capacity = model.Capacity;
 
             await _db.SaveChangesAsync();
+            TempData["Success"] = "Session updated.";
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // GET: /AdminSessions/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var s = await _db.ClassSessions.Include(x => x.Bookings).FirstOrDefaultAsync(x => x.Id == id);
-            if (s == null) return NotFound();
+            var session = await _db.ClassSessions
+                .Include(s => s.ClassType)
+                .Include(s => s.Bookings)
+                .FirstOrDefaultAsync(s => s.Id == id);
 
-            if (s.Bookings.Any())
+            if (session == null)
             {
-                TempData["Error"] = "That session has bookings. Ask members to cancel first.";
-            }
-            else
-            {
-                _db.ClassSessions.Remove(s);
-                await _db.SaveChangesAsync();
+                return NotFound();
             }
 
+            ViewData["TimeZone"] = _tz;
+            return View(session);
+        }
+
+        // POST: /AdminSessions/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var session = await _db.ClassSessions
+                .Include(s => s.Bookings)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (session == null)
+            {
+                return NotFound();
+            }
+
+            _db.Bookings.RemoveRange(session.Bookings);
+            _db.ClassSessions.Remove(session);
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = "Session deleted.";
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task FillTypesAsync(SessionFormViewModel vm) =>
-            vm.ClassTypes = await _db.ClassTypes
-                .Where(t => t.IsActive)
-                .Select(t => new SelectListItem(t.Name, t.Id.ToString()))
+        private DateTime ToUtc(DateTime localTime)
+        {
+            var unspecified = DateTime.SpecifyKind(localTime, DateTimeKind.Unspecified);
+
+            if (_tz.IsInvalidTime(unspecified))
+            {
+                // Clocks jumped forward over this local time, shift past the gap.
+                unspecified = unspecified.AddHours(1);
+            }
+
+            return TimeZoneInfo.ConvertTimeToUtc(unspecified, _tz);
+        }
+
+        private DateTime ToLocal(DateTime utcTime) =>
+            TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utcTime, DateTimeKind.Utc), _tz);
+
+        private async Task PopulateClassTypesAsync(int selectedId, int? alwaysIncludeId = null)
+        {
+            var classTypes = await _db.ClassTypes
+                .Where(ct => ct.IsActive || (alwaysIncludeId != null && ct.Id == alwaysIncludeId))
+                .OrderBy(ct => ct.Name)
                 .ToListAsync();
 
-        public class SessionFormViewModel
-        {
-            public int? Id { get; set; }
-
-            [BindProperty]
-            public int ClassTypeId { get; set; }
-
-            [BindProperty]
-            public DateTime StartLocal { get; set; }
-
-            [BindProperty]
-            public int Capacity { get; set; } = 15;
-
-            [BindProperty]
-            public int RepeatWeeks { get; set; } = 1;
-
-            public List<SelectListItem> ClassTypes { get; set; } = new();
+            ViewData["ClassTypes"] = new SelectList(classTypes, "Id", "Name", selectedId);
         }
     }
 }
