@@ -71,10 +71,7 @@ namespace ONEPASS_FITNESS.Controllers
             user.Name = model.Name;
             user.Lastname = model.Lastname;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
-            if (!string.IsNullOrWhiteSpace(model.DOB))
-            {
-                if (DateOnly.TryParse(model.DOB, out var dob)) user.DOB = dob;
-            }
+
 
             // Update email only if changed
             if (!string.Equals(user.Email, model.Email, StringComparison.OrdinalIgnoreCase))

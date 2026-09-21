@@ -49,6 +49,15 @@ namespace ONEPASS_FITNESS.Controllers
                 return View(invalidModel);
             }
 
+            // Prevent adding progress entries older than 3 months
+            var minAllowed = DateOnly.FromDateTime(DateTime.Today.AddMonths(-3));
+            if (newEntry.Date < minAllowed)
+            {
+                ModelState.AddModelError("NewEntry.Date", "You can only add progress within the last 3 months.");
+                var invalidModel = await BuildIndexViewModelAsync(newEntry);
+                return View(invalidModel);
+            }
+
             newEntry.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
             _context.WeightEntries.Add(newEntry);
