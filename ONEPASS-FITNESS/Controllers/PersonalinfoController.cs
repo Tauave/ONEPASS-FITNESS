@@ -65,7 +65,9 @@ namespace ONEPASS_FITNESS.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
+            //Load user from the database not an ID from the form so people can't edit other users' info
             var user = await _userManager.GetUserAsync(User);
+            //DOB is not updated here because it is not part of the form, and we don't want to allow users to change their DOB after account creation.
             if (user == null) return Challenge();
 
             user.Name = model.Name;
@@ -73,7 +75,7 @@ namespace ONEPASS_FITNESS.Controllers
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
 
 
-            // Update email only if changed
+            //Only update the email if it has changed to avoid unnecessary database operations
             if (!string.Equals(user.Email, model.Email, StringComparison.OrdinalIgnoreCase))
             {
                 var setEmailResult = await _userManager.SetEmailAsync(user, model.Email);

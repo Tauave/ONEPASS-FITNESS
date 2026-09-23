@@ -6,22 +6,23 @@ namespace ONEPASS_FITNESS.Models
     {
         [Display(Name = "First name")]
         [Required]
-        public string Name { get; set; }
+        public string Name {get; set;}
 
         [Display(Name = "Last name")]
         [Required]
-        public string Lastname { get; set; }
+        public string Lastname {get; set;}
 
         [Display(Name = "Date of birth")]
         [DataType(DataType.Date)]
-        public string DOB { get; set; }
+        public string DOB {get; set;}
 
         [Display(Name = "Email")]
         [EmailAddress]
-        public string Email { get; set; }
+        [Required]
+        public string Email {get; set;}
 
         [Display(Name = "Phone number")]
         [Phone]
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber {get; set;}
     }
 }

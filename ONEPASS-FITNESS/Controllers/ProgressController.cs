@@ -41,6 +41,7 @@ namespace ONEPASS_FITNESS.Controllers
                 return View(invalidModel);
             }
 
+            //Stops user from entering a progress entry with a future date
             var today = DateOnly.FromDateTime(DateTime.Today);
             if (newEntry.Date > today)
             {
@@ -49,7 +50,7 @@ namespace ONEPASS_FITNESS.Controllers
                 return View(invalidModel);
             }
 
-            // Prevent adding progress entries older than 3 months
+            //Users cannot add progress entries older than 3 months from the current date
             var minAllowed = DateOnly.FromDateTime(DateTime.Today.AddMonths(-3));
             if (newEntry.Date < minAllowed)
             {
@@ -65,6 +66,7 @@ namespace ONEPASS_FITNESS.Controllers
             {
                 await _context.SaveChangesAsync();
             }
+            //Stop users from entering multiple progress entries for the same date
             catch (DbUpdateException)
             {
                 ModelState.AddModelError("NewEntry.Date", "You already logged weight for this date.");

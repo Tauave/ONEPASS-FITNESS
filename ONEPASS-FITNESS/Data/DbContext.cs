@@ -11,6 +11,7 @@ namespace ONEPASS_FITNESS.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
+
         }
 
  
@@ -27,14 +28,14 @@ namespace ONEPASS_FITNESS.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Seed basic class types so they always exist
+            //Seed basic class types so they always exist and the user can select from them when creating a class session
             modelBuilder.Entity<Models.ClassType>().HasData(
                 new Models.ClassType { Id = 1, Name = "HIIT", Description = "High intensity interval training", DurationMinutes = 45, IsActive = true },
                 new Models.ClassType { Id = 2, Name = "Yoga", Description = "Vinyasa flow and stretching", DurationMinutes = 60, IsActive = true },
                 new Models.ClassType { Id = 3, Name = "Pilates", Description = "Mat Pilates core and mobility", DurationMinutes = 50, IsActive = true }
             );
 
-            // Unique index to prevent duplicate bookings for same user/session
+            //Unique index to prevent duplicate bookings for same user/session even if the controller checks fail to catch it
             modelBuilder.Entity<Models.Booking>()
                 .HasIndex(b => new { b.ClassSessionId, b.UserId })
                 .IsUnique();

@@ -97,11 +97,11 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            // Normalize name fields server-side to ensure consistent casing
+            //Normalize the names before validation to ensure consistent formatting
             Input.Name = NormalizeName(Input.Name);
             Input.Lastname = NormalizeName(Input.Lastname);
 
-            // Re-validate the Input model's name fields after normalization
+            //Names werre changed, so we need to revalidate them. Remove the old validation state and revalidate the model.
             ModelState.Remove("Input.Name");
             ModelState.Remove("Input.Lastname");
             TryValidateModel(Input, "Input");
@@ -144,12 +144,15 @@ namespace ONEPASS_FITNESS.Areas.Identity.Pages.Account
             return LocalRedirect(returnUrl);
         }
 
+        //Capitalizes the first letter of each word in a name and lowecases the rest
         private static string NormalizeName(string s)
         {
+            //Leaves empty names so rquired validation can handle them, but trims whitespace and capitalizes words otherwise
             if (string.IsNullOrWhiteSpace(s)) return s;
             var parts = s.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < parts.Length; i++)
             {
+                //Capitalize the first letter and lowercase the rest of each part
                 var p = parts[i];
                 parts[i] = char.ToUpperInvariant(p[0]) + (p.Length > 1 ? p.Substring(1).ToLowerInvariant() : string.Empty);
             }

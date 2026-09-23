@@ -6,22 +6,22 @@ namespace ONEPASS_FITNESS.Models
     public class ClassBookings
     {
         [Key]
-        public int BookingID { get; set; }
+        public int BookingID {get; set;}
 
         [Required]
-        public int Classid { get; set; }
+        public int Classid {get; set;}
 
-        public Classes Class { get; set; }
-
-        [Required]
-        public int Personalinfoid { get; set; }
+        public Classes Class {get; set;}
 
         [Required]
-        public DateOnly BookingDate { get; set; }
+        public int Personalinfoid {get; set;}
 
         [Required]
-        public string AttendanceStatus { get; set; }
+        public DateOnly BookingDate {get; set;}
 
-        public AppUser appUser { get; set; }
+        [Required]
+        public string AttendanceStatus {get; set;}
+
+        public AppUser appUser {get; set;}
     }
 }

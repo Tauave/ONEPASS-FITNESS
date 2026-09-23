@@ -29,7 +29,7 @@ namespace ONEPASS_FITNESS
             builder.Services.AddControllersWithViews();
 
             // Register a TimeZoneInfo for class times (configure Gym:TimeZone in appsettings or user-secrets)
-            var tzId = builder.Configuration["Gym:TimeZone"] ?? "UTC";
+            var tzId = builder.Configuration["Gym:TimeZone"] ?? "Pacific/Auckland";
             builder.Services.AddSingleton(TimeZoneInfo.FindSystemTimeZoneById(tzId));
 
             builder.Services.AddAuthorization(o =>

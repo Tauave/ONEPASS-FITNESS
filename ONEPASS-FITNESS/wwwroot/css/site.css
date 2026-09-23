@@ -1,31 +1,118 @@
-html {
-  font-size: 14px;
+:root {
+  --op-blue: #1d4ed8;
+  --op-blue-dark: #1e3a8a;
+  --op-red: #dc2626;
+  --op-red-dark: #b91c1c;
+  --op-ink: #0f172a;
+  --op-muted: #64748b;
+  --op-bg: #f8fafc;
+  --op-border: #e2e8f0;
+
+  --bs-primary: #1d4ed8;
+  --bs-primary-rgb: 29, 78, 216;
+  --bs-danger: #dc2626;
+  --bs-danger-rgb: 220, 38, 38;
+  --bs-link-color: #1d4ed8;
+  --bs-link-color-rgb: 29, 78, 216;
+  --bs-link-hover-color: #1e3a8a;
+  --bs-link-hover-color-rgb: 30, 58, 138;
+  --bs-body-color: #0f172a;
+  --bs-body-bg: #f8fafc;
+  --bs-border-color: #e2e8f0;
+  --bs-border-radius: 0.5rem;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+html { font-size: 14px; }
+@media (min-width: 768px) { html { font-size: 16px; } }
+
+body { background: var(--op-bg); color: var(--op-ink); }
+
+/* Navbar */
+.navbar { background: #fff; border-bottom: 1px solid var(--op-border); }
+.navbar-brand { font-weight: 800; letter-spacing: 0.03em; color: var(--op-blue-dark); }
+.navbar-brand .accent { color: var(--op-red); }
+.navbar .nav-link { color: var(--op-ink); font-weight: 500; }
+.navbar .nav-link:hover { color: var(--op-blue); }
+.navbar .nav-link.active { color: var(--op-blue); box-shadow: inset 0 -2px 0 var(--op-blue); }
+
+/* Headings with a small red underline */
+h1 { font-size: 1.75rem; font-weight: 700; }
+
+
+/* Cards, tables, lists */
+.card { border: 1px solid var(--op-border); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05); }
+.card-header { background: #fff; font-weight: 600; border-bottom: 1px solid var(--op-border); }
+.table { --bs-table-bg: #fff; }
+.table thead th {
+  background: #f1f5f9;
+  color: var(--op-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.list-group-item { border-color: var(--op-border); }
+
+/* Buttons */
+.btn { font-weight: 600; border-radius: 0.5rem; }
+.btn-primary {
+  --bs-btn-bg: var(--op-blue);
+  --bs-btn-border-color: var(--op-blue);
+  --bs-btn-hover-bg: var(--op-blue-dark);
+  --bs-btn-hover-border-color: var(--op-blue-dark);
+  --bs-btn-active-bg: var(--op-blue-dark);
+  --bs-btn-active-border-color: var(--op-blue-dark);
+  --bs-btn-disabled-bg: var(--op-blue);
+  --bs-btn-disabled-border-color: var(--op-blue);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--op-blue);
+  --bs-btn-border-color: var(--op-blue);
+  --bs-btn-hover-bg: var(--op-blue);
+  --bs-btn-hover-border-color: var(--op-blue);
+  --bs-btn-active-bg: var(--op-blue-dark);
+  --bs-btn-active-border-color: var(--op-blue-dark);
+}
+.btn-danger {
+  --bs-btn-bg: var(--op-red);
+  --bs-btn-border-color: var(--op-red);
+  --bs-btn-hover-bg: var(--op-red-dark);
+  --bs-btn-hover-border-color: var(--op-red-dark);
+  --bs-btn-active-bg: var(--op-red-dark);
+  --bs-btn-active-border-color: var(--op-red-dark);
+}
+.btn-outline-danger {
+  --bs-btn-color: var(--op-red);
+  --bs-btn-border-color: var(--op-red);
+  --bs-btn-hover-bg: var(--op-red);
+  --bs-btn-hover-border-color: var(--op-red);
+  --bs-btn-active-bg: var(--op-red-dark);
+  --bs-btn-active-border-color: var(--op-red-dark);
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* Focus ring in blue */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(29, 78, 216, 0.25);
+  border-color: var(--op-blue);
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+/* Home hero */
+.hero {
+  background: #fff;
+  border: 1px solid var(--op-border);
+  border-radius: 1rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
+.hero h1 { font-size: 2.25rem; font-weight: 800; color: var(--op-blue-dark); }
+.hero h1 .accent { color: var(--op-red); }
+.hero .lead { color: var(--op-muted); max-width: 36rem; margin: 0.75rem auto 1.5rem; }
 
-body {
-  margin-bottom: 60px;
-}
+.feature-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.feature-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08); }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}

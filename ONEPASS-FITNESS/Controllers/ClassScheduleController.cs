@@ -28,6 +28,7 @@ namespace ONEPASS_FITNESS.Controllers
 
             var classTypes = await _db.ClassTypes
                 .Where(ct => ct.IsActive)
+                .OrderBy(ct => ct.Name)
                 .ToListAsync();
 
             var query = _db.ClassSessions
@@ -81,6 +82,8 @@ namespace ONEPASS_FITNESS.Controllers
             return View(vm);
         }
 
+        //Book a class session for the authenticated user
+        //Checks the session's availability, user's existing bookings, and session capacity before booking
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Book(int sessionId, int? classTypeId)
@@ -91,19 +94,21 @@ namespace ONEPASS_FITNESS.Controllers
             var session = await _db.ClassSessions
                 .Include(s => s.Bookings)
                 .FirstOrDefaultAsync(s => s.Id == sessionId);
-
+            //Stops booking if the class is not found or has already started
             if (session == null || session.StartTime <= DateTime.UtcNow)
             {
                 TempData["Error"] = "Session not found or already started.";
                 return RedirectToAction(nameof(Index), new { classTypeId });
             }
 
+            //Stops booking if the user is already booked into the class
             if (session.Bookings.Any(b => b.UserId == userId))
             {
                 TempData["Error"] = "You're already booked into this class.";
                 return RedirectToAction(nameof(Index), new { classTypeId });
             }
 
+            //Stops booking if the class is full
             if (session.Bookings.Count >= session.Capacity)
             {
                 TempData["Error"] = "Sorry, that class is full.";
@@ -118,6 +123,7 @@ namespace ONEPASS_FITNESS.Controllers
                 await _db.SaveChangesAsync();
                 TempData["Success"] = "You're booked in.";
             }
+            //Stops the second user booking into the same session if the the other user booked first and the session is now full
             catch (DbUpdateException ex)
             {
                 _logger.LogWarning(ex, "Booking failed for session {SessionId} user {UserId}", sessionId, userId);
@@ -127,6 +133,7 @@ namespace ONEPASS_FITNESS.Controllers
             return RedirectToAction(nameof(MySchedule));
         }
 
+        //Cancels a booking for the user while making sure the booking cannot be cancelled within 2 hours of the session start time
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int bookingId)
@@ -134,6 +141,7 @@ namespace ONEPASS_FITNESS.Controllers
             if (!User.Identity?.IsAuthenticated ?? true) return Challenge();
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
+            //Find the booking for the user and the session, if it exists, including the session details for time checks
             var booking = await _db.Bookings
                 .Include(b => b.ClassSession)
                 .FirstOrDefaultAsync(b => b.Id == bookingId && b.UserId == userId);
@@ -144,7 +152,7 @@ namespace ONEPASS_FITNESS.Controllers
                 return RedirectToAction(nameof(MySchedule));
             }
 
-            // Block cancellations within 2 hours of start time
+            // Block cancellations within 2 hours of start time. Time is checked in UTC to avoid timezone issues.
             if (booking.ClassSession.StartTime <= DateTime.UtcNow.AddHours(2))
             {
                 TempData["Error"] = "Cancellations are blocked within 2 hours of the session start.";

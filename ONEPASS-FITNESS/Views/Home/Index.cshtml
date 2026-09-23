@@ -1,47 +1,86 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Identity
+@using ONEPASS_FITNESS.Areas.Identity.Pages
+@inject UserManager<AppUser> UserManager
+@{
     ViewData["Title"] = "Home";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var currentUser = isAuthenticated ? await UserManager.GetUserAsync(User) : null;
 }
 
-@if (User.Identity != null && User.Identity.IsAuthenticated)
-{
-    <h1 class="mb-4">Welcome @(ViewBag.DisplayName ?? User.Identity.Name)</h1>
+<section class="hero mb-4">
+    <h1>Welcome to ONEPASS <span class="accent">FITNESS</span></h1>
+    <p class="lead">Track your progress and book your classes in one place.</p>
 
+    @if (!isAuthenticated)
+    {
+        <a class="btn btn-primary btn-lg me-2" asp-area="Identity" asp-page="/Account/Register">Join now</a>
+        <a class="btn btn-outline-primary btn-lg" asp-area="Identity" asp-page="/Account/Login">Log in</a>
+    }
+    else if (User.IsInRole("Admin"))
+    {
+        <a class="btn btn-primary btn-lg me-2" asp-controller="AdminSessions" asp-action="Index">Manage Sessions</a>
+        <a class="btn btn-outline-primary btn-lg" asp-controller="AdminClassTypes" asp-action="Index">Manage Classes</a>
+    }
+    else
+    {
+        <a class="btn btn-primary btn-lg me-2" asp-controller="ClassSchedule" asp-action="Index">Book a Class</a>
+        <a class="btn btn-outline-primary btn-lg" asp-controller="Progress" asp-action="Index">Track Progress</a>
+    }
+</section>
+
+@if (isAuthenticated)
+{
     <div class="row g-3">
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Progress</h5>
-                    <p class="card-text">Track your weight and fitness progress.</p>
-                    <a asp-controller="Progress" asp-action="Index" class="btn btn-primary">View Progress</a>
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Sessions</h5>
+                        <p class="card-text text-muted">Set the dates and times classes run at.</p>
+                        <a asp-controller="AdminSessions" asp-action="Index" class="btn btn-outline-primary">Manage Sessions</a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Book a Class</h5>
-                    <p class="card-text">Reserve your spot in an upcoming class.</p>
-                    <a asp-controller="ClassSchedule" asp-action="Index" class="btn btn-primary">Book Now</a>
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Classes</h5>
+                        <p class="card-text text-muted">Manage the classes members can book.</p>
+                        <a asp-controller="AdminClassTypes" asp-action="Index" class="btn btn-outline-primary">Manage Classes</a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Schedule</h5>
-                    <p class="card-text">View your upcoming and past bookings.</p>
-                    <a asp-controller="ClassSchedule" asp-action="MySchedule" class="btn btn-primary">View Schedule</a>
+        }
+        else
+        {
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Progress</h5>
+                        <p class="card-text text-muted">Track your weight and fitness progress.</p>
+                        <a asp-controller="Progress" asp-action="Index" class="btn btn-outline-primary">View Progress</a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-}
-else
-{
-    <div class="text-center py-5">
-        <h1 class="display-5 mb-3">Welcome to ONEPASS FITNESS</h1>
-        <p class="lead mb-4">Log in or create an account to book classes and track your progress.</p>
-        <a class="btn btn-primary btn-lg me-2" asp-area="Identity" asp-page="/Account/Login">Log In</a>
-        <a class="btn btn-outline-primary btn-lg" asp-area="Identity" asp-page="/Account/Register">Create Account</a>
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Book a Class</h5>
+                        <p class="card-text text-muted">Reserve your spot in an upcoming class.</p>
+                        <a asp-controller="ClassSchedule" asp-action="Index" class="btn btn-outline-primary">Book a Class</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Schedule</h5>
+                        <p class="card-text text-muted">View your upcoming and past bookings.</p>
+                        <a asp-controller="ClassSchedule" asp-action="MySchedule" class="btn btn-outline-primary">View Schedule</a>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }

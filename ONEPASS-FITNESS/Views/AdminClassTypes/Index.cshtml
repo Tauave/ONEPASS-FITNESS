@@ -1,91 +1,71 @@
-@model List<ONEPASS_FITNESS.Controllers.ClassTypeIndexViewModel>
-
+@model List<ONEPASS_FITNESS.Models.ClassTypeListItemViewModel>
 @{
-    ViewData["Title"] = "Class Types";
+    ViewData["Title"] = "Classes";
 }
 
-<h1>Class Types</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="m-0">Classes</h1>
+    <a class="btn btn-primary" asp-action="Create">Add class</a>
+</div>
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-@if (TempData["Warning"] != null)
-{
-    <div class="alert alert-warning">@TempData["Warning"]</div>
-}
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success">@TempData["Success"]</div>
 }
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
 
-<a asp-action="Create" class="btn btn-primary mb-3">+ Add Class Type</a>
-
-<div class="table-responsive">
-    <table class="table table-striped">
+@if (!Model.Any())
+{
+    <div class="text-muted">No classes yet.</div>
+}
+else
+{
+    <table class="table align-middle">
         <thead>
             <tr>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Duration (min)</th>
+                <th>Duration</th>
+                <th>Upcoming sessions</th>
                 <th>Status</th>
-                <th>Upcoming Sessions</th>
-                <th>Actions</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
-            @if (!Model.Any())
+            @foreach (var ct in Model)
             {
                 <tr>
-                    <td colspan="6" class="text-center text-muted">No class types found.</td>
+                    <td>@ct.Name</td>
+                    <td>@ct.Description</td>
+                    <td>@ct.DurationMinutes min</td>
+                    <td>@ct.UpcomingSessionCount</td>
+                    <td>
+                        @if (ct.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@ct.Id">Edit</a>
+
+                        <form asp-action="Toggle" asp-route-id="@ct.Id" method="post" class="d-inline"
+                              onsubmit="return @(ct.IsActive && ct.UpcomingSessionCount > 0 ? $"confirm('{ct.Name} has {ct.UpcomingSessionCount} upcoming session(s). Deactivating hides it from new bookings but keeps those sessions and their bookings. Continue?')" : "true");">
+                            <button type="submit" class="btn btn-sm @(ct.IsActive ? "btn-outline-warning" : "btn-outline-success")">
+                                @(ct.IsActive ? "Deactivate" : "Activate")
+                            </button>
+                        </form>
+
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@ct.Id">Delete</a>
+                    </td>
                 </tr>
-            }
-            else
-            {
-                @foreach (var classType in Model)
-                {
-                    <tr>
-                        <td><strong>@classType.Name</strong></td>
-                        <td>@(string.IsNullOrEmpty(classType.Description) ? "-" : classType.Description)</td>
-                        <td>@classType.DurationMinutes</td>
-                        <td>
-                            @if (classType.IsActive)
-                            {
-                                <span class="badge bg-success">Active</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">Inactive</span>
-                            }
-                        </td>
-                        <td>@classType.UpcomingSessionCount</td>
-                        <td>
-                            <a asp-action="Edit" asp-route-id="@classType.Id" class="btn btn-sm btn-warning">Edit</a>
-                            @if (classType.UpcomingSessionCount == 0)
-                            {
-                                <a asp-action="Delete" asp-route-id="@classType.Id" class="btn btn-sm btn-danger" 
-                                   onclick="return confirm('Are you sure you want to delete this class type?');">Delete</a>
-                            }
-                            else
-                            {
-                                <form asp-action="Toggle" asp-route-id="@classType.Id" method="post" class="d-inline">
-                                    @if (classType.IsActive)
-                                    {
-                                        <button type="submit" class="btn btn-sm btn-warning" 
-                                                onclick="return confirm('This class type has @classType.UpcomingSessionCount upcoming session(s). Are you sure you want to deactivate it?');">
-                                            Deactivate
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="submit" class="btn btn-sm btn-success">Reactivate</button>
-                                    }
-                                </form>
-                            }
-                        </td>
-                    </tr>
-                }
             }
         </tbody>
     </table>
-</div>
+}

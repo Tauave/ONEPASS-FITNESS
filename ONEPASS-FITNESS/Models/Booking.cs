@@ -4,15 +4,15 @@ namespace ONEPASS_FITNESS.Models
 {
     public class Booking
     {
-        public int Id { get; set; }
+        public int Id {get; set;}
 
         [Required]
-        public int ClassSessionId { get; set; }
-        public ClassSession ClassSession { get; set; }
+        public int ClassSessionId {get; set;}
+        public ClassSession ClassSession {get; set;}
 
         [Required]
-        public string UserId { get; set; } = string.Empty;
+        public string UserId {get; set;}
 
-        public DateTime BookedAt { get; set; } = DateTime.UtcNow;
+        public DateTime BookedAt {get; set;} 
     }
 }

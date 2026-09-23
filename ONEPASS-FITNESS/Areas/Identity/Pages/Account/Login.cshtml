@@ -5,11 +5,11 @@
     ViewData["Title"] = "Log In";
 }
 
-<h1>Log In</h1>
-
 <div class="row">
-    <div class="col-md-6">
-        <form id="account" method="post">
+    <div class="col-md-6 col-lg-5 mx-auto">
+        <div class="card p-4 shadow-sm">
+            <h1>Log In</h1>
+            <form id="account" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
 
             <div class="mb-3">
@@ -23,12 +23,13 @@
                 <span asp-validation-for="Input.Password" class="text-danger"></span>
             </div>
 
-            <button id="login-submit" type="submit" class="btn btn-primary">Log In</button>
-        </form>
+                <button id="login-submit" type="submit" class="btn btn-primary w-100">Log In</button>
+            </form>
 
-        <p class="mt-3">
+            <p class="mt-3 mb-0">
             <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create Account</a>
-        </p>
+            </p>
+        </div>
     </div>
 </div>
 

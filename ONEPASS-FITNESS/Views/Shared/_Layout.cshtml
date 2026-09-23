@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ONEPASS_FITNESS.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">ONEPASS_FITNESS</a>
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">ONEPASS<span class="accent">FITNESS</span></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
                         aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -22,24 +22,30 @@
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Progress" asp-action="Index">Progress</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="ClassSchedule" asp-action="Index">Book a Class</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="ClassSchedule" asp-action="MySchedule">Schedule</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Personalinfo" asp-action="Index">Account</a>
+                                <a class="nav-link text-dark @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">Home</a>
                             </li>
                             @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="AdminSessions" asp-action="Index">Admin</a>
+                                    <a class="nav-link text-dark @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminSessions" ? "active" : "")" asp-controller="AdminSessions" asp-action="Index">Sessions</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminClassTypes" ? "active" : "")" asp-controller="AdminClassTypes" asp-action="Index">Classes</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark @(ViewContext.RouteData.Values["controller"]?.ToString() == "Progress" ? "active" : "")" asp-controller="Progress" asp-action="Index">Progress</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark @(ViewContext.RouteData.Values["controller"]?.ToString() == "ClassSchedule" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="ClassSchedule" asp-action="Index">Book a Class</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark @(ViewContext.RouteData.Values["controller"]?.ToString() == "ClassSchedule" && ViewContext.RouteData.Values["action"]?.ToString() == "MySchedule" ? "active" : "")" asp-controller="ClassSchedule" asp-action="MySchedule">Schedule</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark @(ViewContext.RouteData.Values["controller"]?.ToString() == "Personalinfo" ? "active" : "")" asp-controller="Personalinfo" asp-action="Index">Account</a>
                                 </li>
                             }
                         }
@@ -50,16 +56,11 @@
         </nav>
     </header>
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="flex-grow-1 py-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted py-3">
-        <div class="container">
-            &copy; 2026 - ONEPASS_FITNESS
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
