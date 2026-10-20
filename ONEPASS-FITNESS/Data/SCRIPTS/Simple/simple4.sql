@@ -1,4 +1,4 @@
-﻿select UserId, Date, WeightKg, Note
-from WeightEntries
-where Date >= DateAdd(day, -30, Cast(GetDate() as date))
-order by Date desc;
+﻿select ClassTypes.Name, ClassSessions.StartTime, ClassSessions.Capacity
+from ClassSessions, ClassTypes
+where ClassTypes.Id = ClassSessions.ClassTypeId
+order by ClassSessions.StartTime;

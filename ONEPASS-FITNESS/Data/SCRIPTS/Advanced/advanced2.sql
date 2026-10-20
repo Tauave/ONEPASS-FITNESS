@@ -1,12 +1,5 @@
-﻿select s.Id as SessionId,
-       ct.Name as ClassName,
-       FORMAT((s.StartTime AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'), 'ddd d MMM h:mm tt') as StartsAt,
-       s.Capacity,
-       COUNT(b.Id) as Booked,
-       s.Capacity - COUNT(b.Id) as SpotsLeft
-from ClassSessions as s
-INNER JOIN ClassTypes as ct on ct.Id = s.ClassTypeId
-LEFT JOIN Bookings as b on b.ClassSessionId = s.Id
-where s.StartTime > SYSUTCDATETIME()
-group by s.Id, ct.Name, s.StartTime, s.Capacity
-order by s.StartTime;
+﻿select ClassTypes.Name as ClassName, ClassSessions.StartTime, ClassSessions.Capacity, count(Bookings.Id) as Booked, ClassSessions.Capacity - count(Bookings.Id) as SpotsLeft
+from ClassSessions, ClassTypes, Bookings
+where ClassTypes.Id = ClassSessions.ClassTypeId and ClassSessions.Id = Bookings.ClassSessionId
+group by ClassSessions.Id, ClassTypes.Name, ClassSessions.StartTime, ClassSessions.Capacity
+order by ClassSessions.StartTime;

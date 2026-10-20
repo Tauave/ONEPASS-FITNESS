@@ -1,4 +1,4 @@
-﻿select Id, ClassTypeId, StartTime as StartTimeUtc, Capacity
+﻿select ClassTypeId, StartTime, Capacity
 from ClassSessions
-where StartTime > SYSDATETIMEOFFSET()
-Order by StartTime;
+where StartTime > getutcdate()
+order by StartTime;

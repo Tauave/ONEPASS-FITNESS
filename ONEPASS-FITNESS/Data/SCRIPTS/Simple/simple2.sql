@@ -1,4 +1,4 @@
-﻿select Name, Decription, DurationMinutes
+﻿select Name, Description, DurationMinutes
 from ClassTypes
 where IsActive = 1	
-Order by DurationMinutes desc;
+order by DurationMinutes desc;
