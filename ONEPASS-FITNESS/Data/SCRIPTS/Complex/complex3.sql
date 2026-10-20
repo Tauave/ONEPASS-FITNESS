@@ -1,4 +1,7 @@
-﻿select concat(AspNetUsers.Name, ' ', AspNetUsers.Lastname) as Member, WeightGoals.StartWeightKg, WeightGoals.TargetWeightKg, min(WeightEntries.WeightKg) as LowestKg, max(WeightEntries.WeightKg) as HighestKg, count(WeightEntries.Id) as EntriesLogged
+﻿use [ONEPASS-FITNESS];
+go
+
+select concat(AspNetUsers.Name, ' ', AspNetUsers.Lastname) as Member, WeightGoals.StartWeightKg, WeightGoals.TargetWeightKg, min(WeightEntries.WeightKg) as LowestKg, max(WeightEntries.WeightKg) as HighestKg, count(WeightEntries.Id) as EntriesLogged
 from WeightGoals, AspNetUsers, WeightEntries
 where WeightGoals.UserId = AspNetUsers.Id
 and WeightEntries.UserId = AspNetUsers.Id

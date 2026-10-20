@@ -1,4 +1,7 @@
-﻿select ClassTypes.Name, ClassSessions.StartTime, ClassSessions.Capacity
+﻿use [ONEPASS-FITNESS];
+go
+
+select ClassTypes.Name, ClassSessions.StartTime, ClassSessions.Capacity
 from ClassSessions, ClassTypes
 where ClassTypes.Id = ClassSessions.ClassTypeId
 order by ClassSessions.StartTime;
